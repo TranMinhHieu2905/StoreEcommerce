@@ -1,0 +1,68 @@
+﻿body {
+    font-family: 'Trirong', serif;
+    background: #eee;
+}
+
+.p0 {
+    padding: 0;
+}
+
+.resCarousel-inner .item .tile {
+    height: 89px;
+    width: 96px;
+}
+
+.resCarousel-inner .item {
+    text-align: center;
+}
+
+    .resCarousel-inner .item .tile div,
+    .banner .item div {
+        display: table;
+        width: 100%;
+        min-height: 80px;
+        text-align: center;
+    }
+
+    .resCarousel-inner .item h1 {
+        display: table-cell;
+        vertical-align: middle;
+        color: white;
+    }
+
+.banner .item div {
+    background: url('demoImg.jpg') center top no-repeat;
+    background-size: cover;
+    min-height: 550px;
+}
+
+.item .tile div {
+    background: url('demoImg.jpg') center center no-repeat;
+    background-size: cover;
+    height: 0px;
+    color: white;
+}
+
+.item div h1 {
+    background: rgba(0, 0, 0, .4);
+    width: 218px;
+}
+
+.background_center a {
+    text-decoration: none
+}
+
+.ant-btn:hover .div {
+    height: 91px;
+}
+
+/*.ant-modal-content {
+    width: 1163px;
+    height: 813px;
+    margin-left: -279px;
+}*/
+/*
+.ant-modal-close-x {
+    width: 30px;
+}
+*/

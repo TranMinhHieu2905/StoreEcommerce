@@ -1,0 +1,92 @@
+﻿@page "/update"
+@page "/update/{CurrentPage:int}"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+<h3>UpdateCategory</h3>
+<body>
+    <style>
+        main-content{
+             max-width:70%;
+             text-align:center;
+             margin:auto;
+        }
+        .tab-content{
+            width:900px;          
+             margin:auto;
+        }
+    </style>
+
+    <div class="main-content">
+                    <form>
+                        <div class="page-header no-gutters has-tab">
+                            <div class="d-md-flex m-b-15 align-items-center justify-content-between">
+                              
+                               
+                            </div>
+                            <ul class="nav nav-tabs" >
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-toggle="tab" href="#">Sửa nhóm sản phẩm</a>
+                                </li>                              
+                            </ul>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="product-edit-basic" >
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label class="font-weight-semibold" for="productName">Tên Nhóm :</label>
+                                            <input @bind-value="category.NameCategory" type="text" class="form-control" id="productName" placeholder="Tên nhóm sản phẩm">
+                                        </div>                                     
+                                         <div class="form-group">
+                                            <label class="font-weight-semibold" for="productPrice">Hình ảnh :</label>                                           
+                                            <img src="/img_list/mubaohiem.png"  style="width:100px"/>                                       
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="font-weight-semibold" for="productPrice">Mô tả :</label><br />                                      
+                                            <textarea @bind="category.Description" name="info" rows="5" cols="50"> </textarea>                                          
+                                        </div>                      
+                                        <div class="m-b-15">
+                                          <button class="btn btn-danger" style="margin-left:700px;margin-top:30px">
+                                              <i class="anticon anticon-save"  ></i>
+                                              <span>Lưu</span>                                          
+                                          </button>
+                                        </div>  
+                                    </div>
+                                </div>
+                            </div>
+                           </div>
+                    </form>
+                </div>
+                           
+</body>
+@code {
+    [Parameter]
+    public int CurrentPage { get; set; }=0;
+    LibraryStoreEcommerce.Category category = new LibraryStoreEcommerce.Category();
+    private async Task GetCategorybyID()
+    {
+        var addItem = new CategoryInput { ID = CurrentPage};
+        var response = await Http.PostAsJsonAsync<CategoryInput>("api/Category/GetCategorybyID", addItem);
+        category = await response.Content.ReadFromJsonAsync< LibraryStoreEcommerce.Category>(); 
+        _visible = false;
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategorybyID();
+
+    }
+    string title = "Delete";
+    bool _visible = false;
+
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+}

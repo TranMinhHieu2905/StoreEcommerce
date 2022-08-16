@@ -1,0 +1,107 @@
+﻿@page "/productadminStop"
+@page "/detail"
+@inject NavigationManager NavigationManager
+@using AntDesign
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+<head>
+</head>
+
+<Tabs DefaultActiveKey="1">
+    <TabPane Key="1" Tab="Danh Mục Tạm Ngừng">
+       <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+               
+                 <table class="table table-hover" >                 
+             <thead>
+                 <tr style="background-color:#FF9900">
+                <th scope="col">STT</th>
+                <th scope="col">ẢNH</th>
+                <th scope="col">TÊN SẢN PHẨM</th>
+                <th scope="col">HIỂN THỊ</th>
+                <th scope="col">HÀNH ĐỘNG</th>
+            </tr>
+            </thead>
+                    <tbody >
+                        @foreach (var item in categoriepage)
+                        {
+                        <tr>
+                            <th scope="row">@item.STT</th>
+                            <td><img style="width:100px;" src="@item.PictureLink" /></td>
+                            <td>@item.NameCategory</td>
+                            @if(@item.IsActive==0)
+                            {
+                                <td><p>&#10004</p></td>
+                             }
+                             else{
+                                  <td><p>&#10060</p></td>                  
+                             }
+                          <td>
+                            <NavLink  href="detailcategory">
+                            <button  class="btn btn-warning">Xem</button>                  
+                            </NavLink>
+                            <a href="/detailproductadmin/@item.ID">
+                            <button class="btn btn-primary m-r-5">Khôi phục</button>
+                            </a>                   
+                                
+                           </td>                                                      
+                        </tr>              
+                        }        
+                    </tbody>
+                </table> 
+                </div>                     
+                 <div class="col-1"></div>    
+                 <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                </AdminStoreEcommerce.Pages.Pagination>
+            </div>
+           
+        </div>
+</div>
+    </TabPane>
+    <TabPane Key="2" Tab="Tab 2">
+        Content of Tab Pane 2
+    </TabPane>
+    <TabPane Key="3" Tab="Tab 3">
+        Content of Tab Pane 3
+    </TabPane>
+</Tabs>
+@code{
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 6;
+    private int totalPages = 1;
+     SearchInput searchInput = new SearchInput();
+      List<LibraryStoreEcommerce.Category> categories = new List<LibraryStoreEcommerce.Category>();
+    List<LibraryStoreEcommerce.Category> categoriepage = new List<LibraryStoreEcommerce.Category>();
+    private async Task GetListCategory()
+    {   var addItem = new SearchInput {TextSearch= searchInput.TextSearch};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+        if (categories != null)
+        { 
+            totalPages = (int)Math.Ceiling(categories.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            categoriepage = categories.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+   protected override async Task OnInitializedAsync()
+    {          
+        await GetListCategory();
+    }
+     private void SelectedPage(int selectedPageIndex)
+    {
+        if (categories != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            categoriepage = categories.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+}

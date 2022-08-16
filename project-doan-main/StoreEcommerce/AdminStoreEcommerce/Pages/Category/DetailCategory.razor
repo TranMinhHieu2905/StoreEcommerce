@@ -1,0 +1,238 @@
+﻿@page "/detailcategory"
+@page "/detail/{CurrentPage:int}"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject MessageService _message
+<h3>Chi tiết Danh Mục sản phẩm</h3>
+<body>
+    <style>
+        main-content{
+             max-width:70%;
+             text-align:center;
+             margin:auto;
+        }
+        .tab-content{
+            width:900px;          
+             margin:auto;
+        }
+    </style>
+
+     <EditForm Model="category" OnSubmit="@SubmitEventHandler">
+                       <DataAnnotationsValidator />    
+                     <label>Tên danh mục sản phẩm<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => category.NameCategory" /></label>
+                     <div include="form-input-input()">
+                     <InputText @bind-Value="category.NameCategory" style=" border-radius: 8px;" type="text" id="fname" name="fname" ></InputText><br><br>
+                    </div>  <br /> 
+                <label>File ảnh</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp;<label style="color:green">@Message</label>&nbsp;&nbsp;
+              <div class="input-group">
+	            <div class="custom-file">
+		            <InputFile class="custom-file-input" OnChange="OnChange" accept="image/png, image/jpeg, image/gif" id="inputFile" />
+	            </div>
+            </div>
+
+            @foreach (var item in filesBase64)
+            {
+	            <img src="data:@item.contentType;base64,@item.base64data" />
+            }   
+            <div style="width:100%;">
+                <label>Mô tả nhóm sản phẩm</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp; <label><ValidationMessage For="() => category.Description"/></label>
+                <div include="form-input-input()">
+                    <InputText @bind-Value="category.Description" style=" border-radius: 8px;" type="search" id="fname" name="fname" ></InputText><br><br>
+                </div>   
+               
+             </div>
+             <div>
+               <span>Hiển thị:</span>  <input checked @onchange="DoStuff" type="checkbox" id="coding" name="interest" value="coding"><br />
+          </div>
+              <div style="margin-top:-10px;text-align: center;">
+             <button @onclick="ModalShow" style="border-radius: 4px;" type="submit" class="btn btn-primary">Thêm mới</button>       
+            </div>
+                @if (displayUserAddedToDB)
+                {
+                   @if (showModal)
+                    {
+                    <div class="modal fade show" id="myModal" style="display:block" aria-modal="true" role="dialog">
+                        <div class="modal-dialog">
+                            <div style="margin-top: 399px; margin-left: 145px;" class="modal-content">
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h4 style="text-align:center" class="modal-title">Thông tin</h4>
+                                   @* <button type="button" class="close" @onclick="@ModalCancel">&times;</button>*@
+                                </div>
+
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                   <h1 style="text-align:center;color:red">@result</h1>
+                                </div>
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                  <NavLink href="ListCV"><button type="button" class="btn btn-success">Tiếp tục</button></NavLink>
+                                    <button type="button" class="btn btn-danger"  @*@onclick="ModalCancel"*@>Quay lại</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    }
+                }                                      
+                </EditForm>       
+                           
+</body>
+@code {
+    [Parameter]
+    public int CurrentPage { get; set; }=0;
+    //private async Task GetCategorybyID()
+    //{
+    //    var addItem = new CategoryInput { ID = CurrentPage};
+    //    var response = await Http.PostAsJsonAsync<CategoryInput>("api/Category/GetCategorybyID", addItem);
+    //    category = await response.Content.ReadFromJsonAsync< LibraryStoreEcommerce.Category>(); 
+    //    _visible = false;
+    //}
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    await GetCategorybyID();
+
+    //}
+    string title = "Delete";
+    bool _visible = false;
+
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+     bool isChecked = true;
+    bool disabled = false;
+
+    void ToggleDisable()
+    {
+        disabled = !disabled;
+    }
+    LibraryStoreEcommerce.Category category = new LibraryStoreEcommerce.Category();
+    protected override async Task OnInitializedAsync()
+    {
+        //await AddCateGory();       
+    }
+    public async Task AddCateGory() 
+    {
+        var AddItem = new LibraryStoreEcommerce.Category { NameCategory = category.NameCategory, Description = category.Description,PictureLink=Link,IsActive=IsActive};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Category>("api/Category/Insert",AddItem);     
+        if (response.IsSuccessStatusCode)
+        {
+            string key = $"updatable-{DateTime.Now.Ticks}";
+            var config = new MessageConfig()
+                {
+                    Content = "Loading...",
+                    Key = key
+                };
+            config.Content = "Thêm danh mục thành công";
+            config.Duration = 3;
+            await _message.Success(config);               
+            await _message.Loading("Quay lại trang chủ");
+            await Task.Delay(300);
+            NavigationManager.NavigateTo("/");     
+        }
+        else
+        {
+            await _message.Error("Thêm danh mục thất bại");
+        }      
+    }  
+    bool displayValidationErrorMessages = false;
+    bool displayUserAddedToDB = false;
+    bool showModal = false;
+    string CVpath = "";
+    string result="";
+    string Message = "Không có tệp nào được chọn";
+    private void SubmitEventHandler(EditContext context)
+    {
+        if (context.Validate())
+        {
+            displayValidationErrorMessages = false;
+            displayUserAddedToDB = true;
+        }
+        else
+        {
+            displayValidationErrorMessages = true;
+            displayUserAddedToDB = false;
+        }
+    }
+    async Task ModalShow()
+    {
+        if((category.NameCategory==string.Empty) || (category.Description==string.Empty) )
+        {
+            //showModal = true;
+        }
+        else
+        {
+            showModal = true;
+            await AddCateGory();
+        }
+    }
+
+
+    string Link = "";
+    List<ImageFile> filesBase64 = new List<ImageFile>();
+    ImageFile files = new ImageFile();
+
+    string message = "InputFile";
+    bool isDisabled = false;
+    ImageFile imageFile = new ImageFile();
+    async Task OnChange(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(); // get the files selected by the users
+        foreach(var file in files)
+        {
+            var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+            var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+            using (var stream = resizedFile.OpenReadStream())
+            {
+                await stream.ReadAsync(buf); // copy the stream to the buffer
+            }
+
+            imageFile.base64data = Convert.ToBase64String(buf);
+            imageFile.contentType = file.ContentType;
+            imageFile.fileName = file.Name;
+            Link ="data:"+imageFile.contentType+";base64,"+imageFile.base64data;
+            filesBase64.Add(new ImageFile { base64data = Convert.ToBase64String(buf), contentType = file.ContentType, fileName = file.Name }); // convert to a base64 string!!
+        }
+        Message = "Đã thêm thành công";
+    }
+    async Task Upload()
+    {
+        isDisabled = true;
+        using (var msg = await Http.PostAsJsonAsync<List<ImageFile>>("/api/File/UploadIMG", filesBase64, System.Threading.CancellationToken.None))
+        {
+            isDisabled = false;
+            if (msg.IsSuccessStatusCode)
+            {
+                message = $"{filesBase64.Count} files uploaded";
+                filesBase64.Clear();
+            }
+        }
+
+    }
+    string selectd = "true";
+    int IsActive = 0;
+    public async Task DoStuff(ChangeEventArgs e)
+    {
+        selectd = e.Value.ToString();
+        if(selectd != "True")
+        {
+            IsActive = 1;
+        }
+        else
+        {
+             IsActive = 0;
+        }
+        //var addItem = new ProductDetail {ID=result,Screen=1};
+        //var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        //products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+}

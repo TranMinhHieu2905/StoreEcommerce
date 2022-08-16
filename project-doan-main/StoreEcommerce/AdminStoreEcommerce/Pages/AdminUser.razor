@@ -1,0 +1,459 @@
+﻿@page "/adminUser"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@inject NavigationManager NavigationManager
+@using AntDesign
+<head>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+   <link href="css/admin.css" rel="stylesheet" />
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><Icon Type="user" Theme="outline"/>&nbsp;Quản Lý Người Dùng</span>
+    </div>
+     <div class="col-2">
+       
+    </div>
+      <div class="col-3">
+      <Dropdown>
+                <Overlay>
+                    <Menu Style="width:220px;">
+                        <MenuItem>
+                             <span class="fa fa-btc selectitem">&nbsp;<Button OnClick="@(async ()=>await GetListUser (1))">Tất cả</Button></span> 
+                        </MenuItem>
+                         <MenuItem>
+                             <span class="fa fa-btc selectitem">&nbsp;<Button OnClick="@(async ()=>await GetListUser (3))">Không hoạt động</Button></span> 
+                        </MenuItem>
+                        <MenuItem>
+                                <span class="fa fa-btc selectitem">&nbsp;<Button OnClick="@(async ()=>await GetListUser (2))">Hoạt động</Button></span> 
+                        </MenuItem>
+                    </Menu>
+                </Overlay>
+                <ChildContent>               
+                     <Icon Style="font-size:20px;" Type="sliders" Theme="twotone"/> <a style="color:black;font-size:20px;text-decoration: none;" class="ant-dropdown-link" @onclick:preventDefault>
+                     TRẠNG THÁI HOẠT ĐỘNG <Icon Type="down" />
+                    </a>
+                </ChildContent>
+    </Dropdown>  
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-3">
+
+    </div>
+    <div class="col-4">
+  
+        <div include="form-input-input()">
+            <input @bind-value="searchInput.TextSearch" placeholder="Họ tên, tài khoản" style=" border-radius: 8px;"> 
+        </div>       
+    </div>
+    <div class="col-3">
+         <button style="margin-top: 4px;" @onclick="@(async ()=>await GetListUser (1))" class="btn btn-success m-r-5">Tìm kiếm</button> <button style="margin-top: 4px" class="btn btn-success m-r-5" @onclick="DeleTeFilter">Xoá bộ lọc</button>
+    </div>
+</div>
+
+<body>
+     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+               
+                 <table class="table table-hover" >                 
+             <thead>
+                 <tr style="background-color:#FF9900">
+                <th scope="col">STT</th>
+                <th scope="col">TÀI KHOẢN</th>
+                <th scope="col">HỌ VÀ TÊN</th>
+                <th scope="col">SỐ ĐIỆN THOẠI</th>
+                <th scope="col">TRẠNG THÁI HOẠT ĐỘNG</th>
+                <th scope="col">HÀNH ĐỘNG</th>
+            </tr>
+            </thead>
+                    <tbody >
+                        @foreach (var item in accounts)
+                        {
+                        <tr>
+                            <th scope="row">@item.STT</th>
+                            <td>@item.UserName</td>
+                            <td>@item.FullName</td>
+                             <td>@item.Phone</td>
+                            @if(@item.IsActive ==0)
+                            {
+                                 <td>Đang hoạt động</td>
+                            }
+                            else
+                            {
+                                 <td>Tạm ngừng hoạt động</td>
+                            }
+                           
+                          <td>
+                            <button @onclick="@(async ()=>await GetAccount(@item.ID))"  class="btn btn-warning">Xem</button>   
+                            @if(@item.IsActive ==0)
+                            {
+                                <span>&ensp;</span> <button class="btn btn-danger m-r-5" @onclick="@(()=>{ _visible = true;Name=@item.UserName;ID=@item.ID;})"> Khóa tài khoản</button>          
+                            }
+                            else
+                            {
+                                 <span>&ensp;</span> <button class="btn btn-danger m-r-5" @onclick="@(()=>{ _visible1 = true;Name=@item.UserName;ID=@item.ID;})"> Khôi phục tài khoản</button>          
+                            }
+                                 <span>&ensp;</span>  <button @onclick="@(async ()=>await GetListCart(@item.ID))"  class="btn btn-warning">Đơn hàng đã đặt</button>       
+                           </td>                                                      
+                        </tr>              
+                        }        
+                    </tbody>
+                </table> 
+                </div>                     
+                 <div class="col-1"></div>    
+                  <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                </AdminStoreEcommerce.Pages.Pagination>
+            </div>
+           
+        </div>
+</div>
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteAccount(@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+ @{RenderFragment 
+    footer1 =@<Template>
+         <button  @onclick="@(async ()=>await ResstoreAccount(@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+} 
+ @{RenderFragment 
+    footer2 =@<Template>
+
+    </Template>;
+} 
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn khóa tài khoản <b>@Name</b> không ?</p>    
+</Modal> 
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1">
+    <p>Bạn có muốn khôi phục tài khoản <b>@Name</b> không ?</p>    
+</Modal> 
+<Modal Title="@title2"
+        Visible="@_visible2"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer2">
+  @*  <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;">*@
+                    <div style="font-size: 22px;padding: 18px;">Hồ sơ của tôi</div>
+                     <div>Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+                     <hr>
+                    <label>Tên đăng nhập: @accountOuput.UserName</label>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Họ và tên</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.FullName" style=" border-radius: 8px;" type="text" placeholder="Nhập họ và tên"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Email</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Email"  style=" border-radius: 8px;" type="text" placeholder="Nhập email"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Số Điện Thoại</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Phone" style=" border-radius: 8px;" type="text" placeholder="Nhập số điện thoại"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Giới Tính</div>
+                    <div style="color:black">                             
+                        <div>
+                            <RadioGroup @bind-Value="accountOuput.Sex" >
+                                <Radio  Value="0">Nam</Radio>
+                                <Radio  Value="1">Nữ</Radio>
+                                <Radio  Value="2">Khác</Radio>
+                            </RadioGroup>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Ngày sinh</div>
+                    <div style="color:black">                             
+                        <DatePicker @bind-Value="accountOuput.Day" Format="dd/MM/yyyy" />
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Địa chỉ</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Address" style=" border-radius: 8px;" type="text" placeholder="Nhập địa chỉ"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div class="row">
+                         <div class="col-6">
+                             <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Thành phố</span>                          
+                                <div style="background-color:white;" include="form-input-select()">
+                                  <select value="@accountOuput.ProvinceCode" style="border-radius:8px;" @onchange="handleChange">
+                                      <option hidden value="">Chọn thành phố</option>
+                                      @foreach (var item in listaddress)
+                                        {
+                                             <option value="@item.ProvinceCode">@item.AddressName</option>
+                                        }
+                                 </select>
+                              </div>
+                         </div> 
+                        <div class="col-6">
+                            <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Tỉnh</span>
+                            <div style="background-color:white;" include="form-input-select()">
+                                <select value="@accountOuput.DistrictCode" style="border-radius:8px;" @onchange="handleChangeDistrictCode">
+                                    <option hidden value="">Chọn quận,huyện</option>
+                                    @foreach (var item in listdistrict)
+                                    {
+                                            <option value="@item.ProvinceCode">@item.AddressName</option>
+                                    }
+                                </select>
+                          </div>
+                        </div>                                                                     
+                    </div>
+                    <br />
+                    <div style="float:right;margin-bottom:10px;">
+                        @*<Button OnClick="HandleCancel"  Type="@ButtonType.Primary">Lưu</Button>*@
+                        <Button OnClick="HandleCancel"  Danger Type="@ButtonType.Primary">Thoát</Button>
+                    </div>                 
+</Modal> 
+<Modal Title="@title3"
+        Visible="@_visible3"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1"
+        Width="1000">
+        <Table @ref="table" DataSource="@buyOutputs" @bind-SelectedRows="selectedRows1" @bind-PageIndex="_pageIndex" @bind-PageSize="_pageSize">
+                            <Column Title="STT" @bind-Field="@context.STT" >                                              
+                            </Column>
+                            <Column Title="Hình ảnh" TData="string">
+                                <img style="width:100px;" src="@context.PictureLink" />                               
+                            </Column>
+                            <Column Title="Sản phẩm" TData="string">   
+                                 <div style="font-size:20px">@context.NameProduct</div>
+                                <div><span style="color:#757575;">Màu: @context.Value</span></div>
+                                  <div><span style="color:#757575;">Size: @context.Size</span></div>
+                            </Column>
+                            <Column Title="Đơn giá" TData="string">
+                                <span>@String.Format("{0:0,0}", @context.Price)<span>đ</span></span>
+                                </Column>
+                            <Column Style="text-align:center;" Title="Số lượng" @bind-Field="@context.Number">                             
+                            </Column>
+                            <Column Title="Tổng Cộng" TData="string">
+                                @{                          
+                                        Tong = @context.Number * @context.Price;
+                                        <span>@String.Format("{0:0,0}", Tong)<span>đ</span></span>
+                                    }                                       
+                            </Column>  
+                            <Column Format="dd/MM/yyyy" Title="Ngày đặt hàng" @bind-Field="@context.Date" >    
+                            </Column>                            
+                        </Table>  
+</Modal> 
+</body>
+@code {
+    int Tong = 0;
+    int _pageIndex = 1;
+    int _pageSize = 6;
+    public string Name { get; set; } = string.Empty;
+    public int ID { get; set; } = 0;
+    //Load dữ liệu khi vào màn hình
+    protected override async Task OnInitializedAsync()
+    {          
+        await GetListUser(1);
+        await GetProvince();
+    }
+    SearchInput searchInput = new SearchInput();
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 6;
+    private int totalPages = 1;
+
+    // xóa Account update IsActive =1
+    public async Task DeleteAccount(int ID) 
+    {  
+        _visible = false;
+        var addItem  = new AccountDelete {ID=ID};
+        var response = await  Http.PostAsJsonAsync<AccountDelete>("api/Account/Delete", addItem);   
+
+        if (response.IsSuccessStatusCode)
+        {        
+            string key = $"updatable-{DateTime.Now.Ticks}";
+            var config = new MessageConfig()
+                {
+                    Content = "Loading...",
+                    Key = key
+                };
+            config.Content = "Tạm dừng tài khoản thành công";
+            config.Duration = 3;
+            await _message.Success(config);              
+            await GetListUser(1);
+        }
+        else
+        {
+            await _message.Error("Tạm dừng tài khoản thất bại");
+        }      
+    }    
+    string title = "Xác nhận khoá tài khoản người dùng";
+    string title1 = "Xác nhận khôi phục tài khoản người dùng";
+    string title2 = "Thông tin tài khoản người dùng";
+    string title3 = "Các đơn hàng đã đặt";
+    bool _visible = false;   
+    bool _visible1 = false;
+    bool _visible2 = false;
+    bool _visible3 = false;
+    // Get List User phân trang
+    List<AccountOutput> account = new List<AccountOutput>();
+    List<AccountOutput> accounts = new List<AccountOutput>();
+    private async Task GetListUser(int Screen)
+    {   var addItem = new AccountSearch {TextSearch= searchInput.TextSearch,Screen=Screen};
+        var response = await Http.PostAsJsonAsync<AccountSearch>("api/Account/GetListAccount", addItem);
+        account = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.AccountOutput>>();  
+        if (account != null)
+        { 
+            totalPages = (int)Math.Ceiling(account.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            accounts = account.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Xoá bộ lọc
+    public async Task DeleTeFilter()
+    {
+        searchInput.TextSearch = string.Empty;
+        var addItem = new AccountSearch {Screen=1};
+        var response = await Http.PostAsJsonAsync<AccountSearch>("api/Account/GetListAccount", addItem);
+        account = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.AccountOutput>>();  
+        if (account != null)
+        { 
+            totalPages = (int)Math.Ceiling(account.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            accounts = account.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Khôi phục tài khoản User
+    public async Task ResstoreAccount(int ID) 
+    {  
+        _visible1 = false;
+        var addItem  = new AccountDelete {ID=ID};
+        var response = await  Http.PostAsJsonAsync<AccountDelete>("api/Account/RestoreUser", addItem);   
+
+        if (response.IsSuccessStatusCode)
+        {        
+            string key = $"updatable-{DateTime.Now.Ticks}";
+            var config = new MessageConfig()
+                {
+                    Content = "Loading...",
+                    Key = key
+                };
+            config.Content = "Khôi phục tài khoản thành công";
+            config.Duration = 3;
+            await _message.Success(config);              
+            await GetListUser(1);
+        }
+        else
+        {
+            await _message.Error("Khôi phục tài khoản thất bại");
+        }      
+    }    
+    // Phân trang
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (account != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            accounts = account.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false;
+        _visible2 =  false;
+        _visible3 =  false;
+    } 
+    // Get thông tin User
+    AccountOutput accountOuput = new AccountOutput();
+    private async Task GetAccount(int IDInput)
+    {
+        _visible2 = true;
+        var addItem = new Account {ID=IDInput};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Account>("api/Account/GetOnebyID", addItem);
+        accountOuput = await response.Content.ReadFromJsonAsync<AccountOutput>(); 
+        await GetDistrictbyProvince(); 
+    }
+    // GET THÀNH PHỐ VÀ QUẬN HUYỆN
+    List<Address> listaddress = new List<Address>();
+    public async Task GetProvince()
+    {       
+        listaddress = await Http.GetFromJsonAsync< List<Address>>($"api/Address/SelectProvince");
+    }
+    List<Address> listdistrict = new List<Address>();
+    public async Task GetDistrictbyProvince()
+    {  
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =accountOuput.ProvinceCode};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    // Lấy ra quận huyện theo tỉnh
+    int result = 0;
+    //List<Address> listdistrict = new List<Address>();
+    public async Task handleChange(ChangeEventArgs e)
+    {
+        result = Int32.Parse(e.Value.ToString());
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =result};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    // Lấy ra mã huyện để Update
+    int DistrictCode = 0;
+    public async Task handleChangeDistrictCode(ChangeEventArgs e)
+    {
+        DistrictCode = Int32.Parse(e.Value.ToString());
+    }
+    // List danh sách đã đặt hàng
+    ITable table;
+    IEnumerable<BuyOutput> selectedRows1;
+
+    List<BuyOutput> buyOutputs = new List<BuyOutput>();
+    private async Task GetListCart(int IDInput)
+    {
+        var addItem = new Account {ID=IDInput};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Account>("api/Account/GetOnebyID", addItem);
+        accountOuput = await response.Content.ReadFromJsonAsync<AccountOutput>(); 
+        _visible3 = true;
+        var addItem1 = new LibraryStoreEcommerce.UserOrderProduct {UserName = accountOuput.UserName};
+        var response1 = await Http.PostAsJsonAsync<LibraryStoreEcommerce.UserOrderProduct>("api/Buy/ProductUserOrder", addItem1);
+        buyOutputs = await response1.Content.ReadFromJsonAsync<List<BuyOutput>>(); 
+    }
+}

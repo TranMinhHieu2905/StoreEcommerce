@@ -1,0 +1,432 @@
+﻿@page "/addproduct"
+@inject HttpClient Http
+@using LibraryStoreEcommerce
+@using AntDesign
+@using System.Net.Http.Headers
+@inject NavigationManager NavigationManager
+@inject MessageService _message
+<style>
+        table,th,td{
+            border:1px solid black;
+            border-collapse:collapse;
+        }
+
+        th,td{
+            padding: 5px;
+            text-align:center;
+            max-width : 1000px;
+            margin-left:200px;
+            margin-right:200px;
+        }
+        table{
+            max-width:90%;
+            text-align:center;
+            margin:auto;
+            margin-top: 50px;
+        }
+        col-1{
+            background-color:red;
+        }
+            .table-responsive{
+
+        }
+        .table table-hover{
+            max-width:90%;         
+        }
+        .fix_screen1 
+        {
+        max-width: 1352px;
+            margin: auto;
+        }
+        .buttons_added {
+            opacity:1;
+            display:inline-block;
+            display:-ms-inline-flexbox;
+            display:inline-flex;
+            white-space:nowrap;
+            vertical-align:top;
+        }
+     </style>
+<body>     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+                   <EditForm Model="product" OnSubmit="@SubmitEventHandler">
+                       <DataAnnotationsValidator />  
+                       <label>Tên nhóm sản phẩm:<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => product.ID" /></label>
+                       <div include="form-input-select()">
+                        <InputSelect @bind-Value="product.ID" style=" border-radius: 5px;" >                      
+                          <option value="" hidden>Chọn nhóm sản phẩm</option>
+                         @foreach (var item in categories)
+                        {
+                             <option value="@item.ID">@item.NameCategory</option>
+                        }
+                        </InputSelect>
+                    </div>
+                     <label>Tên sản phẩm:<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => product.NameProduct" /></label>
+                     <div include="form-input-input()">
+                     <InputText @bind-Value="product.NameProduct" style=" border-radius: 8px;" type="text" id="fname" name="fname" ></InputText><br><br>
+                    </div>  <br /> 
+                    <label>Mã sản phẩm:<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => product.Code" /></label>
+                     <div include="form-input-input()">
+                     <InputText @bind-Value="product.Code" style=" border-radius: 8px;" type="text" id="fname" name="fname" ></InputText><br><br>
+                    </div>  <br />                     
+                     <label >Mô tả sản phẩm<i class="material-icons" style="color:red;font-size:20px;">*</i></label>&nbsp;&nbsp;<label><ValidationMessage For="() => product.Descriptions" /></label>     
+                     <TextArea AutoSize OnResize="OnResize" @bind-Value="@product.Descriptions" /> 
+                    <br /> 
+                     <label>Giá bán:<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => product.PriceProduct" /></label>
+                     <div include="form-input-input()">
+                     <input @bind-value="product.PriceProduct" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+                    </div>  <br /> 
+                    <label>Số lượng:<i class="material-icons" style="color:red;font-size:20px;">*</i></label> &nbsp;&nbsp;<label><ValidationMessage For="() => product.Number" /></label>
+                     <div include="form-input-input()">
+                        <div class="buttons_added">
+                        <input @bind-value="product.Number" aria-label="quantity" class="input-qty" max="1000" min="1" name="" type="number">
+                    </div>  
+                    </div>
+                    <label>Màu sắc:</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp;@* <label><ValidationMessage For="() => product.Value" /></label>*@
+                        <Select Mode="multiple"
+                        Placeholder="Chọn màu sắc"
+		                @bind-Values="@_selectedValues1"
+		                TItemValue="string"
+		                TItem="string"
+		                OnSelectedItemsChanged="OnSelectedItemsChangedHandler"
+		                Style="width: 100%; margin-bottom: 8px;"
+		                EnableSearch
+		                AllowClear>
+		                <SelectOptions>
+			                @foreach(var item in defaultOuputs)
+			                {
+				                <SelectOption TItemValue="string" TItem="string" Value=@item.Value Label=@item.Value />
+			                }
+		                </SelectOptions>
+		                </Select>
+                    <label>Loại sản phẩm:</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp; <label><ValidationMessage For="() => product.Type" /></label>
+                    <div include="form-input-select()">
+                        <InputSelect @bind-Value="product.Type" style=" border-radius: 5px;" >                      
+                          <option value="" hidden>Chọn loại sản phẩm</option>
+                        @foreach(var country in systemKey)
+                        {
+                            <option value = "@country.ID"> @country.NameType </option >
+                        }
+                        </InputSelect>
+                    </div>
+                    <span>Miễn thuế:</span>  <input @onchange="DoStuff" type="checkbox" id="coding" name="interest" value="coding"><br />
+                        @if(IsActive)
+                        {
+                            <label>Loại thuế:</label><i class="material-icons" style="color:red;font-size:20px">*</i> <label><ValidationMessage For="() => product.Tax" /></label>
+                            <div include="form-input-select()">
+                                <InputSelect @bind-Value="product.Tax" style=" border-radius: 5px;" >                      
+                                  <option value="" hidden>Chọn loại thuế</option>
+                                @foreach(var country in systemKeyTax)
+                                {
+                                    <option value = "@country.ID"> @country.NameTax </option >
+                                }
+                                </InputSelect>
+                            </div>
+                        }  
+                     <label>File ảnh:</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp;<label style="color:green">@Message</label>&nbsp;&nbsp;
+                      <div class="input-group">
+	                    <div class="custom-file">
+		                    <InputFile class="custom-file-input" multiple OnChange="OnChange" accept="image/png, image/jpeg, image/gif" id="inputFile" />
+	                    </div>
+                    </div>
+                        @foreach (var item in filesBase64)
+                        {
+	                        <img src="data:@item.contentType;base64,@item.base64data" />
+                        }
+                        <br />
+
+                     <label>Thuộc tính của sản phẩm</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp; <label><ValidationMessage For="() => selectd1" /></label>
+                    <div style="background-color:white;" include="form-input-select()">
+                      <select style="border-radius:8px;" @onchange="DoStuff1">
+                          @foreach (var item in systemKeyProperties)
+                            {
+                                 <option value="@item.ID">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                        @if (IsActiveProperty)
+                        {
+                            <Select Mode="multiple"
+                            Placeholder="Chọn đặc điểm"
+		                    @bind-Values="@_selectedValues2"
+		                    TItemValue="string"
+		                    TItem="string"
+		                    OnSelectedItemsChanged="OnSelectedItemsChangedHandler"
+		                    Style="width: 100%; margin-bottom: 8px;"
+		                    EnableSearch
+		                    AllowClear>
+                                    <SelectOptions>
+                                        @foreach (var item in defaultOuputProperty)
+                                        {
+                                            <SelectOption TItemValue="string" TItem="string" Value=@item.Value Label=@item.Value />
+                                        }
+                                    </SelectOptions>
+                           </Select>
+                        }
+                        <br />
+                         <label>Nhà cung cấp:</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp; <label><ValidationMessage For="() => product.Supplier" /></label>
+                        <div include="form-input-select()">
+                            <InputSelect @bind-Value="product.Supplier" style=" border-radius: 5px;" >                      
+                            <option value="" hidden>Chọn nhà cung cấp</option>
+                            @foreach(var country in systemKeySupplier)
+                            {
+                                <option value = "@country.ID"> @country.NameSupplier </option >
+                            }
+                            </InputSelect>
+                        </div>
+                        <div style="margin-top:-10px;text-align: center;">
+              <button @onclick="ModalShow" style="border-radius: 4px;" type="submit" class="btn btn-primary">Thêm mới</button>       
+            </div>                                       
+                </EditForm>       
+                </div>                     
+                 <div class="col-1"></div>                      
+            </div>
+        </div>
+</div>
+</body>
+@code {
+    bool isChecked = true;
+    bool disabled = false;
+
+    void ToggleDisable()
+    {
+        disabled = !disabled;
+    }
+    LibraryStoreEcommerce.Category category = new LibraryStoreEcommerce.Category();
+    LibraryStoreEcommerce.Product product = new LibraryStoreEcommerce.Product();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSystemKey();
+        await GetListCategory();
+        await GetSystemKeyTax();
+        await GetListColor();
+        await GetSystemKeyProperties();
+        await GetSystemKeySupplier();
+    }
+    //public async Task AddProduct() 
+    //{
+    //    var AddItem = new LibraryStoreEcommerce.Product
+    //    {NameProduct=product.NameProduct,Code=product.Code,Descriptions="a",PriceProduct=1000,Type=1,Tax =1,ID=product.ID };
+    //    var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/Insert",AddItem);     
+    //    if (response.IsSuccessStatusCode)
+    //    {
+    //        string key = $"updatable-{DateTime.Now.Ticks}";
+    //        var config = new MessageConfig()
+    //            {
+    //                Content = "Loading...",
+    //                Key = key
+    //            };
+    //        config.Content = "Thêm sản phẩm thành công";
+    //        config.Duration = 3;
+    //        await _message.Success(config);               
+    //        await _message.Loading("Quay lại trang chủ");
+    //        await Task.Delay(300);
+    //        NavigationManager.NavigateTo("/AAAAA");     
+    //    }
+    //    else
+    //    {
+    //        await _message.Error("Thêm danh mục thất bại");
+    //    }      
+    //}  
+    public async Task AddProductNew()
+    {
+        var AddItem = new LibraryStoreEcommerce.Product
+        {NameProduct=product.NameProduct,Code=product.Code,Descriptions=product.Descriptions,PriceProduct=product.PriceProduct,Type=product.Type,Tax =product.Tax,ID=product.ID ,Supplier=product.Supplier};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/InsertNew",AddItem);     
+    }
+    public async Task AddProductIMG()
+    {
+        foreach (var item in filesBase64)
+        {
+            Link ="data:"+item.contentType+";base64,"+item.base64data;
+            var AddItem = new LibraryStoreEcommerce.Product{Code =product.Code,PictureLink = Link };
+            var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/InsertIMG",AddItem);  
+        }      
+    }
+    public async Task AddProductProperties()
+    {
+        foreach (var item in _selectedValues2)
+        {
+            var AddItem = new LibraryStoreEcommerce.Product { Code = product.Code, Size = item,Property = IDProperties };
+            var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/InsertProperties",AddItem);  
+        }      
+    }
+    public async Task AddProductColor()
+    {
+        foreach (var item in _selectedValues1)
+        {         
+            var AddItem = new LibraryStoreEcommerce.Product{Code =product.Code,Number=product.Number,@Value =item,Property =4 };
+            var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/InsertColor",AddItem);  
+        }      
+    }
+
+    bool displayValidationErrorMessages = false;
+    bool displayUserAddedToDB = false;
+    bool showModal = false;
+    string CVpath = "";
+    string result="";
+    string Message = "Không có tệp nào được chọn";
+    private void SubmitEventHandler(EditContext context)
+    {
+        if (context.Validate())
+        {
+            displayValidationErrorMessages = false;
+            displayUserAddedToDB = true;
+        }
+        else
+        {
+            displayValidationErrorMessages = true;
+            displayUserAddedToDB = false;
+        }
+    }
+    async Task ModalShow()
+    {
+        if((product.NameProduct==string.Empty) || (product.Code==string.Empty) || product.Code ==string.Empty  )
+        {
+            //showModal = true;
+        }
+        else
+        {
+            await AddProductNew();
+            await AddProductIMG();
+            await AddProductColor();
+            await AddProductProperties();
+            await _message.Success("Thêm sản phẩm thành công"); 
+            NavigationManager.NavigateTo("/adminproduct");
+        }
+    }
+    async Task ModalShow1()
+    {
+        await AddProductNew();
+        await AddProductIMG();
+        await AddProductColor();
+        await AddProductProperties();
+    }
+
+    string Link = "";
+    List<ImageFile> filesBase64 = new List<ImageFile>();
+    ImageFile files = new ImageFile();
+
+    string message = "InputFile";
+    bool isDisabled = false;
+    ImageFile imageFile = new ImageFile();
+    async Task OnChange(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(); // get the files selected by the users
+        foreach(var file in files)
+        {
+            var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+            var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+            using (var stream = resizedFile.OpenReadStream())
+            {
+                await stream.ReadAsync(buf); // copy the stream to the buffer
+            }
+
+            imageFile.base64data = Convert.ToBase64String(buf);
+            imageFile.contentType = file.ContentType;
+            imageFile.fileName = file.Name;
+            Link ="data:"+imageFile.contentType+";base64,"+imageFile.base64data;
+            filesBase64.Add(new ImageFile { base64data = Convert.ToBase64String(buf), contentType = file.ContentType, fileName = file.Name }); // convert to a base64 string!!
+        }
+        Message = "Đã thêm thành công";
+    }
+    async Task Upload()
+    {
+        isDisabled = true;
+        using (var msg = await Http.PostAsJsonAsync<List<ImageFile>>("/api/File/UploadIMG", filesBase64, System.Threading.CancellationToken.None))
+        {
+            isDisabled = false;
+            if (msg.IsSuccessStatusCode)
+            {
+                message = $"{filesBase64.Count} files uploaded";
+                filesBase64.Clear();
+            }
+        }
+
+    }
+    List<SystemKey> systemKey = new  List<SystemKey>();
+    public async Task GetSystemKey()
+    {
+        systemKey = await Http.GetFromJsonAsync< List<SystemKey>>($"api/SystemKey/Type");
+    }
+    List<SystemKeyTax> systemKeyTax = new  List<SystemKeyTax>();
+    public async Task GetSystemKeyTax()
+    {
+        systemKeyTax = await Http.GetFromJsonAsync< List<SystemKeyTax>>($"api/SystemKey/Tax");
+    }
+    List<SystemKeyProperties> systemKeyProperties = new  List<SystemKeyProperties>();
+    public async Task GetSystemKeyProperties()
+    {
+        systemKeyProperties = await Http.GetFromJsonAsync< List<SystemKeyProperties>>($"api/SystemKey/Properties");
+    }
+
+    List<SystemKeySupplier> systemKeySupplier = new  List<SystemKeySupplier>();
+    public async Task GetSystemKeySupplier()
+    {
+        systemKeySupplier = await Http.GetFromJsonAsync< List<SystemKeySupplier>>($"api/SystemKey/Supplier");
+    }
+
+    List<LibraryStoreEcommerce.Category> categories = new List<LibraryStoreEcommerce.Category>();
+    private async Task GetListCategory()
+    {   var addItem = new SearchInput {};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+    }
+    string selectd = "false";
+    bool IsActive = true;
+
+    public async Task DoStuff(ChangeEventArgs e)
+    {
+        selectd = e.Value.ToString();
+        if(selectd == "True")
+        {
+            IsActive = false;
+
+        }
+        else
+        {
+            IsActive = true;
+        } 
+    }
+    string selectd1 = "";
+    bool IsActiveProperty = false;
+    public async Task DoStuff1(ChangeEventArgs e)
+    {
+
+        defaultOuputProperty.Clear();
+        selectd1 = e.Value.ToString();
+        IsActiveProperty = true;
+        await GetListProperty();
+    }
+    IEnumerable<string> _selectedValues1;
+    IEnumerable<string> _selectedValues2;
+    List<DefaultOuput> defaultOuputs = new List<DefaultOuput>();
+    List<DefaultOuput> defaultOuputProperty = new List<DefaultOuput>();
+    private async Task GetListColor()
+    {   var addItem = new DefaultValue {ID=4};
+        var response = await Http.PostAsJsonAsync<DefaultValue>("api/SystemKey/Default", addItem);
+        defaultOuputs = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.DefaultOuput>>();  
+    }
+    private int IDProperties = 0;
+    private async Task GetListProperty()
+    {  
+         IDProperties = Int32.Parse(selectd1);
+        var addItem = new DefaultValue {ID=IDProperties};
+        var response = await Http.PostAsJsonAsync<DefaultValue>("api/SystemKey/Default", addItem);
+        defaultOuputProperty = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.DefaultOuput>>();  
+    }
+    private void OnSelectedItemsChangedHandler(IEnumerable<string> values)
+    {
+		if (values != null)
+			Console.WriteLine($"selected: ${string.Join(",", values)}");
+    }
+    // Get TextArea
+    private void OnResize(OnResizeEventArgs args)
+    {
+        Console.WriteLine($"OnResizeEvent width:{args.Width},height:{args.Height}");
+    }
+}

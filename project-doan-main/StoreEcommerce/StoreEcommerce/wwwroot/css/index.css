@@ -1,0 +1,386 @@
+﻿[include*="form-input-select()"] {
+    display: block;
+    padding: 0;
+    position: relative;
+    /* Set options to normal weight */
+    /* ------------------------------------  */
+    /* START OF UGLY BROWSER-SPECIFIC HACKS */
+    /* ----------------------------------  */
+    /* FIREFOX won't let us hide the native select arrow, so we have to make it wider than needed and clip it via overflow on the parent container.
+       The percentage width is a fallback since FF 4+ supports calc() so we can just add a fixed amount of extra width to push the native arrow out of view. We're applying this hack across all FF versions because all the previous hacks were too fragile and complex.
+       You might want to consider not using this hack and using the native select arrow in FF. Note this makes the menus wider than the select button because they display at the specified width and aren't clipped. Targeting hack via http://browserhacks.com/#hack-758bff81c5c32351b02e10480b5ed48e */
+    /* Show only the native arrow */
+    color: #005ba6;
+    display: block;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 16px;
+    margin-top: 9px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+    [include*="form-input-select()"]::before, [include*="form-input-select()"]::after {
+        content: "";
+        display: block;
+        position: absolute;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    [include*="form-input-select()"] select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background: none;
+        box-sizing: border-box;
+        width: 100%;
+        margin: 0;
+        border: 1px solid transparent;
+        font-size: 16px;
+        outline: none;
+        /* Focus style */
+    }
+
+        [include*="form-input-select()"] select:focus {
+            background-color: transparent;
+            outline: none;
+        }
+
+    [include*="form-input-select()"] option {
+        font-weight: normal;
+    }
+
+    [include*="form-input-select()"] x:-o-prefocus, [include*="form-input-select()"]::after {
+        display: none;
+    }
+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    [include*="form-input-select()"] select::-ms-expand {
+        display: none;
+    }
+
+    [include*="form-input-select()"] select:focus::-ms-value {
+        background: transparent;
+        color: #000;
+    }
+}
+
+@-moz-document url-prefix() {
+    [include*="form-input-select()"] {
+        overflow: hidden;
+    }
+
+        [include*="form-input-select()"] select {
+            width: 120%;
+            width: calc(100% + 3em);
+            /* Firefox focus has odd artifacts around the text, this kills that. See https://developer.mozilla.org/en-US/docs/Web/CSS/:-moz-focusring */
+        }
+
+    @supports (-moz-appearance: none) {
+        [include*="form-input-select()"] select {
+            width: 100%;
+        }
+    }
+
+    [include*="form-input-select()"] select:-moz-focusring {
+        color: transparent;
+        text-shadow: 0 0 0 #000;
+    }
+}
+
+@supports (-moz-appearance: none) {
+    [include*="form-input-select()"] {
+        width: 100%;
+    }
+}
+
+[include*="form-input-select()"]::before, [include*="form-input-select()"]::after {
+    content: "";
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    border: 1px solid transparent;
+    width: 0;
+    height: 0;
+    right: 16px;
+}
+
+[include*="form-input-select()"]::before {
+    bottom: 55%;
+    border-width: 0 6.5px 8px 6.5px;
+    border-bottom-color: #d6d6d6;
+}
+
+[include*="form-input-select()"]::after {
+    border-width: 8px 6.5px 0 6.5px;
+    border-top-color: #d6d6d6;
+    top: 55%;
+}
+
+@-moz-document url-prefix() {
+    [include*="form-input-select()"] {
+        border-right: 3px solid #e6e6e6;
+    }
+
+        [include*="form-input-select()"]:hover {
+            border-right: 3px solid #005ba6;
+        }
+}
+
+[include*="form-input-select()"]:hover select {
+    box-shadow: 0 2px 3px rgba(0, 91, 166, 0.1) inset;
+    border-color: #005ba6;
+}
+
+    [include*="form-input-select()"]:hover select:focus {
+        outline-color: transparent;
+    }
+
+[include*="form-input-select()"]:hover::before {
+    border-bottom-color: #005ba6;
+}
+
+[include*="form-input-select()"]:hover::after {
+    border-top-color: #005ba6;
+}
+
+[include*="form-input-select()"] select {
+    border: 2px solid #e6e6e6;
+    border-radius: 0;
+    font-weight: 400;
+    color: inherit;
+    padding: 11px 15px;
+    line-height: normal;
+    transition: border-color 0.2s ease, outline 0.2s ease;
+}
+
+    [include*="form-input-select()"] select:focus {
+        box-shadow: 0 3px 4px rgba(0, 91, 166, 0.3) inset;
+        outline: 3px solid #005ba6;
+        outline-offset: -3px;
+    }
+
+    [include*="form-input-select()"] select[disabled], [include*="form-input-select()"] select:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    [include*="form-input-select()"] select:not(:focus):invalid {
+        color: #c7c7c7;
+    }
+
+/* body {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border: 1em solid #005ba6;
+  } */
+/* body div {
+    max-width: 16em;
+  }
+   */
+html {
+    box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+.import {
+    text-align: center;
+    background-color: #F2EEED;
+    height: 50px;
+    margin-top: 3px;
+}
+
+[include*="form-input-input()"]:hover input {
+    box-shadow: 0 2px 3px rgba(0, 91, 166, 0.1) inset;
+    border-color: #005ba6;
+}
+
+    [include*="form-input-input()"]:hover input:focus {
+        outline-color: transparent;
+    }
+
+[include*="form-input-input()"]:hover::before {
+    border-bottom-color: #005ba6;
+}
+
+[include*="form-input-input()"]:hover::after {
+    border-top-color: #005ba6;
+}
+
+[include*="form-input-input()"] input {
+    border: 2px solid #e6e6e6;
+    border-radius: 0;
+    font-weight: 400;
+    color: inherit;
+    padding: 11px 15px;
+    line-height: normal;
+    transition: border-color 0.2s ease, outline 0.2s ease;
+    width: 100%;
+}
+/* Styles for wrapping the search box */
+
+.main {
+    width: 50%;
+    margin: 50px auto;
+}
+
+/* Bootstrap 4 text input with search icon */
+
+.has-search .form-control {
+    padding-left: 2.375rem;
+}
+
+.has-search .form-control-feedback {
+    position: absolute;
+    z-index: 2;
+    display: block;
+    width: 2.375rem;
+    height: 2.375rem;
+    line-height: 2.375rem;
+    text-align: center;
+    pointer-events: none;
+    color: #aaa;
+}
+.suggestion-container {
+    position: relative;
+}
+
+.tagsinput, .tagsinput * {
+    box-sizing: border-box
+}
+
+.tagsinput {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    background: #fff;
+    font-size: 14px;
+    line-height: 20px;
+    color: #556270;
+    padding: 5px 5px 0;
+    border: 1px solid #e6e6e6;
+    border-radius: 2px
+}
+
+    .tagsinput.focus {
+        border-color: #ccc
+    }
+
+    .tagsinput .tag {
+        position: relative;
+        background: #556270;
+        display: block;
+        max-width: 100%;
+        word-wrap: break-word;
+        color: #fff;
+        padding: 5px 30px 5px 5px;
+        border-radius: 2px;
+        margin: 0 5px 5px 0
+    }
+
+        .tagsinput .tag .tag-remove {
+            position: absolute;
+            background: 0 0;
+            display: block;
+            width: 30px;
+            height: 30px;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            color: #ff6b6b;
+            line-height: 30px;
+            padding: 0;
+            border: 0
+        }
+
+            .tagsinput .tag .tag-remove:after, .tagsinput .tag .tag-remove:before {
+                background: #ff6b6b;
+                position: absolute;
+                display: block;
+                width: 10px;
+                height: 2px;
+                top: 14px;
+                left: 10px;
+                content: ''
+            }
+
+            .tagsinput .tag .tag-remove:before {
+                -webkit-transform: rotateZ(45deg);
+                transform: rotateZ(45deg)
+            }
+
+            .tagsinput .tag .tag-remove:after {
+                -webkit-transform: rotateZ(-45deg);
+                transform: rotateZ(-45deg)
+            }
+
+    .tagsinput div {
+        -webkit-box-flex: 1;
+        -webkit-flex-grow: 1;
+        -ms-flex-positive: 1;
+        flex-grow: 1
+    }
+
+        .tagsinput div input {
+            background: 0 0;
+            display: block;
+            width: 100%;
+            font-size: 14px;
+            line-height: 20px;
+            padding: 5px;
+            border: 0;
+            margin: 0 5px 5px 0
+        }
+
+            .tagsinput div input:focus {
+                color: #495057;
+                background-color: #fff;
+                border-color: #80bdff;
+                outline: 0;
+                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            }
+
+            .tagsinput div input.error {
+                color: #ff6b6b
+            }
+
+            .tagsinput div input::-ms-clear {
+                display: none
+            }
+
+            .tagsinput div input::-webkit-input-placeholder {
+                color: #ccc;
+                opacity: 1
+            }
+
+            .tagsinput div input:-moz-placeholder {
+                color: #ccc;
+                opacity: 1
+            }
+
+            .tagsinput div input::-moz-placeholder {
+                color: #ccc;
+                opacity: 1
+            }
+
+            .tagsinput div input:-ms-input-placeholder {
+                color: #ccc;
+                opacity: 1
+            }

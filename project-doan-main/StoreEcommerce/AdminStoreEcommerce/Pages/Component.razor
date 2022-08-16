@@ -1,0 +1,39 @@
+﻿@using AntDesign
+@page "/ad"
+<SimpleSelect Value="jack" @onchange="@(async () =>await GETValue(@c))" DefaultValue="lucy" Style="width:120px;" OnSelectedItemChanged="handleChange">
+    <SelectOptions>
+        <SimpleSelectOption  Value="jack" Label="Jack"></SimpleSelectOption>
+        <SimpleSelectOption  Label="Lucy"></SimpleSelectOption>
+        <SimpleSelectOption Value="disabled" Label="Disabled" Disabled></SimpleSelectOption>
+        <SimpleSelectOption Value="Yiminghe" Label="yiminghe"></SimpleSelectOption>
+    </SelectOptions>
+</SimpleSelect>
+  <p>@a</p>
+ <div include="form-input-select()">
+   <select  @onchange="@(async () => await GETValue(@c))">
+  <option value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="vw">VW</option>
+  <option value="audi" selected>Audi</option>
+
+</select>
+  <p>@a</p>
+ </div>
+
+@code{
+    string c = "jack";
+    string d = "Lucky";
+    public async void handleChange(string value)
+    {
+        a = value;
+    }
+    string a = "";
+    void handleItemsChange(IEnumerable<string> value)
+    {
+        Console.WriteLine(value);
+    }
+    public async Task GETValue(string b)
+    {
+        a = b;
+    }
+}

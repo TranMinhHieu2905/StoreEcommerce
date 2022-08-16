@@ -1,0 +1,442 @@
+﻿@page "/productdetail/{Code}"
+@page "/productdetail"
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject MessageService _message
+@inject NavigationManager NavigationManager
+@using Blazored.LocalStorage;
+@using AntDesign
+@using LibraryStoreEcommerce
+<head>
+      <link href="css/detailproduct.css" rel="stylesheet" />
+      <link href="css/productdetail.css" rel="stylesheet" />
+<style>
+
+.check{
+    border:2px solid red !important;
+}
+  </style>
+  </head>
+<body style="background-color: aliceblue;padding-top: 15px;" >
+    <div class="fix_screen">
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-4" style="background-color:white;min-width:450px">
+                <div>
+                     <img src="@product.PictureLink" style="width:100%;" @onclick="@(()=>{_visible = true;})" />
+                </div>                                                                                                              
+                             
+                  <div class="p8">      
+                <div class="resCarousel" data-items="2-3-4-5" data-slide="5" data-speed="900" data-interval="4000" data-load="3" data-animator="lazy">
+            <div class="resCarousel-inner" id="eventLoad">       
+                @foreach (var item in products)
+                {
+                     <div class="item">
+                        <div class="tile">
+                           <Button  OnClick=@(()=>Show(@item.PictureLink )) Style="height:91px">
+                               <div style="width:100%;width:71px; background-image: url('@item.PictureLink')">           
+                            </div>      
+                           </Button>                
+                        </div>                   
+                    </div>
+                }                                   
+            </div>
+            <button style="height:35px;width:37px;margin-top: 33px;" class='btn btn-default leftRs'> <span class="glyphicon glyphicon-chevron-left"></span></button>
+            <button style="height:35px;width:37px;margin-top: 33px;" class='btn btn-default rightRs'> <span class="glyphicon glyphicon-chevron-right"></span></button>
+             </div>
+             </div>
+             <div style="float:right">
+                     <button @onclick="ToggleLike" 
+                            class="btn @( liked == true ? "btn-primary" : "btn-secondary" )">
+                        <Icon Type="like" Theme="outline"/>
+                    </button>
+                       <b>Yêu thích</b> (@product.Likes)
+            </div>
+            </div>
+            <div class="col-6"style="background-color:white">
+                <b style="font-size:25px;margin-top:10px">@product.NameProduct</b>
+               @* <span><AntDesign.Icon Type="like" Theme="outline"/>@product.Likes</span>*@
+                <div>
+                     <span style=" text-decoration: underline;font-size:25px;margin-top:10px"></span><span style="font-size:30px">@product.Price</span>                     
+                </div>
+                <div style="display: flex;">                   
+                      <div style="color:#757575;margin-top:10px;padding: 0px 8px;font-size:20px">Vận chuyển</div>
+                      <div style="margin-left: 25px;display: flex;">
+                           <img style="width: 44px;height: 25px;margin-top:10px;" src="/img_icon/freeship.png" />
+                            <div style="color:black;margin-top:10px;font-size:20px"><span>  Miễn phí vận chuyển</span></div>
+                      </div>                                        
+                 </div>
+                 <i class="fa fa-truck" style="font-size:24px;margin-top:10px;margin-left:155px">
+                     <span style="color:#757575;font-size:16px;"> Vận chuyển tới : <span>@AddressName, @DistrictName, @ProvinceName</span> </span>
+                  
+                 </i> 
+                 <div class="row">
+                     <div class="col-3">
+                          <div style="color:#757575;margin-top:30px;padding: 0px 10px;font-size:20px">Màu</div>
+                         
+                     </div>
+                    <div class="col-9" style="margin-top:30px;">
+                        <div>                            
+                            @foreach (var item in productgetcolor)
+                            {   
+                                 <input type="button" class=" @item.classCheck" value="@item.Value" style="margin-bottom:5px;width:100px;border:1px solid black"@onclick="()=>ChangeBorder(item,productgetcolor,item.Value)"/> <span>&nbsp;</span>
+                            }                                              
+                        </div>      
+                                         
+                    </div>                     
+                 </div> 
+                 <div class="row" style="margin-top:30px;">
+                     <div class="col-3">
+                        
+                          <div style="color:#757575;padding: 0px 10px;font-size:20px">Số lượng</div>
+                     </div>
+                    <div class="col-9">
+                          
+                         <div class="buttons_added">
+                                <input style="height: 30px;width: 38px;" class="minus is-form" type="button" value="-" @onclick="()=>CurrentCountGiam()">
+                                <b><input style="height: 30px;width: 60px;font-size:13px;" aria-label="quantity" class="input-qty" max="100" min="1" name="" type="number" value="@CurrentCount"> </b> 
+                                <input style="height: 30px;width: 38px;" class="plus is-form" type="button" value="+"@onclick="CurrentCountTang"> &ensp; <p style="margin-top:5px;"> ( @productColor.Number sản phẩm có sẵn )</p>
+                        </div>                    
+                    </div>                     
+                 </div> 
+                  <div class="row" style="margin-top:30px;">
+                     <div class="col-3">
+                        
+                          <div style="color:#757575;padding: 0px 10px;font-size:20px">Loại</div>
+                     </div>
+                    <div class="col-9">
+                           <div>                            
+                            @foreach (var item in getsize)
+                            {   
+                                 <input type="button" class=" @item.classCheck" value="@item.Size" style="margin-bottom:5px;width:100px;border:1px solid black" @onclick="()=>ChangeBorderSize(item,getsize,item.Size)"/> <span>&nbsp;</span>
+                            }                                              
+                        </div>                 
+                    </div>                     
+                 </div> 
+                 <div style="margin-top:40px">
+                     <Button OnClick="AddInCart" Style="height: 47px;width: 41%;" Type="@ButtonType.Primary" Ghost>Thêm Vào Giỏ Hàng</Button> 
+                     <Button OnClick="AuthAsync" Style="height: 47px;width: 20%;" Type="@ButtonType.Primary">Mua Ngay</Button>
+                 </div>
+                 
+           </div>
+        </div>
+        <div>
+             <Tabs DefaultActiveKey="1">
+        <TabPane>
+        </TabPane>
+        <TabPane>
+        </TabPane>
+        <TabPane Key="1">
+            <TabTemplate>
+                <span><Icon Type="android" />THÔNG TIN SẢN PHẨM</span>
+            </TabTemplate>
+            <ChildContent>
+                <p>@product.Descriptions</p>
+            </ChildContent>
+        </TabPane>
+        <TabPane>
+        </TabPane>
+         <TabPane>
+        </TabPane>
+
+        <TabPane Key="2">
+            <TabTemplate>
+                <span><Icon Type="apple" />BÌNH LUẬN</span>
+            </TabTemplate>
+            <ChildContent>
+                
+            </ChildContent>
+            </TabPane>
+            <TabPane>
+            </TabPane>
+            <TabPane>
+            </TabPane>
+           <TabPane Key="3">
+                <TabTemplate>
+                <span><Icon Type="apple" />ĐÁNH GIÁ</span>
+                </TabTemplate>
+           </TabPane>
+    </Tabs>
+
+        </div>
+    </div>
+@{
+    RenderFragment footer = @<Template>
+       
+</Template>;
+}
+    <Modal Width=900 Style="margin-top:-100px;"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OnCancel="@HandleCancel"
+        Footer="@footer">
+        <div class="row">
+            <div class="col-10">
+                 <img src="@product.PictureLink" style="width:100%;">
+            </div>
+            <div class="col-2">      
+                 @foreach (var item in products)
+                {
+                     <div class="item">
+                        <div class="tile">
+                           <Button  OnClick=@(()=>Show(@item.PictureLink )) Style="height:91px">
+                               <img style="width:100%;width:71px;" src="@item.PictureLink">   
+                           </Button>                
+                        </div>                   
+                    </div>
+                }      
+            </div>
+        </div>
+    
+     
+</Modal>
+</body>
+@code{
+    public string ProvinceName = string.Empty;
+    public string DistrictName = string.Empty;
+    public string AddressName = string.Empty;
+    public string NameProduct = string.Empty;
+    public string UserName = string.Empty;
+    public string Price = string.Empty;
+    public int Number =0;
+    const string noteKey = "note";
+    public string LinkUrl = "";
+    public int PropertyInput = 0;
+    [Parameter]
+    public string Code { get; set; } = string.Empty;    
+    Product product = new Product();
+    List<Product> products = new List<Product>();
+
+    AccountOutput account = new AccountOutput();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetImage();
+        await GetListImage();
+        await Address();
+        await GetUser();
+        await GetListColor();
+        await GetSize();
+        await CheckLike();
+    }
+    public async Task GetUser()
+    {
+        account = await localStore.GetItemAsync<AccountOutput>(noteKey);   
+        if(account != null)
+        {
+            ProvinceName =account.ProvinceName;
+            DistrictName = account.DistrictName;
+            AddressName = account.Address;
+            UserName = account.UserName;
+        }
+        else
+        {
+            //await _message.Error("Vui lòng đăng nhập để mua hàng");
+        }
+    }
+    private async Task GetImage()
+    {   var addItem = new GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/GetImage", addItem);
+        product = await response.Content.ReadFromJsonAsync<Product>();  
+        //LinkUrl = product.PictureLink;
+        //NameProduct = product.NameProduct;
+        //Price = product.Price;
+        //Number = product.Number;
+    }
+    private async Task GetListImage()
+    {   var addItem = new GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/GetListImage", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    public void Show(string LinkURL)
+    {
+        product.PictureLink = LinkURL;
+    }
+    bool _visible = false;
+    bool _loading = false;
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        await Task.Delay(3000);
+        _visible = false;      
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
+    }
+    public int CurrentCount = 1;
+    public void CurrentCountTang()
+    {
+        CurrentCount++;
+    }
+    public void CurrentCountGiam()
+    {   CurrentCount--;
+        if (CurrentCount < 1) CurrentCount = 1;
+    }
+    public string ValueColor{ get; set; } = string.Empty;
+    public async Task ChangeBorder(Product image,List<Product> images,string Value)
+    {
+        foreach (var item in images)
+        {
+            item.classCheck = "uncheck";
+            await GetNumber(Value);
+        }
+        image.classCheck="check";  
+        ValueColor = Value;
+        //if(image.classCheck == "uncheck")
+        //{
+        //    image.classCheck = "check";
+        //}
+        //else
+        //{
+        //    image.classCheck="uncheck";
+        //}
+    }
+    private string Size{ get; set; } = string.Empty;
+    public async Task ChangeBorderSize(GetSize image,List<GetSize> images,string Value)
+    {
+        foreach (var item in images)
+        {
+            item.classCheck = "uncheck";
+        }
+        image.classCheck="check";
+        Size = Value;
+    }
+    private async Task AddInCart()
+    {   
+        if(account==null)
+        {
+            await _message.Error("Vui lòng đăng nhập để mua hàng");
+        }
+        else if(Size != string.Empty && ValueColor != string.Empty && CurrentCount < productColor.Number)
+        {
+            var addItem = new LibraryStoreEcommerce.Cart {Code=@Code,Account=account.UserName,Number=@CurrentCount,Properties=PropertyInput,Size=Size,Color=ValueColor};
+            var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Cart>("api/Cart/Insert", addItem);
+            if (response.IsSuccessStatusCode)
+            {
+                await _message.Success("Đã thêm vào giỏ hàng");
+            }
+            else
+            {
+                await _message.Error("Thêm vào giỏ hàng thất bại");
+            }   
+        }
+
+        else if (Size == string.Empty && ValueColor == string.Empty )
+        {
+            await _message.Error("Vui lòng chọn Size,Màu");
+        }
+        else if (Size == string.Empty )
+        {
+            await _message.Error("Vui lòng chọn Size");
+        }
+        else if (ValueColor == string.Empty )
+        {
+            await _message.Error("Vui lòng chọn Màu");
+        }
+        else if(CurrentCount > productColor.Number)
+        {
+            await _message.Error("Số lượng không đủ, vui lòng chọn lại số lượng");
+        }
+    }
+    List<Address> addresses = new List<Address>();
+    public async Task Address()
+    {
+        addresses =await Http.GetFromJsonAsync<List<Address>>("api/Address/GetListDistricAndProvince");
+    }
+    Account adress = new Account();
+    List<Product> productgetcolor = new List<Product>();
+    public async Task GetListColor()
+    {
+        var addItem = new LibraryStoreEcommerce.GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.GetImg>("api/Product/GetColor", addItem);
+        productgetcolor = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    Product productColor = new Product();
+    public async Task GetNumber(string Value)
+    {
+        var addItem = new LibraryStoreEcommerce.GetNumberInput {Code=@Code,Value=Value};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.GetNumberInput>("api/Product/GetNumber", addItem);
+        productColor = await response.Content.ReadFromJsonAsync<Product>();
+        PropertyInput = productColor.Property;
+    }
+    List<GetSize> getsize = new List<GetSize>();
+    public async Task GetSize()
+    {
+        var addItem = new LibraryStoreEcommerce.GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.GetImg>("api/Product/GetSize", addItem);
+        getsize = await response.Content.ReadFromJsonAsync<List<GetSize>>();
+    }
+    // BuyNow
+    public async Task AuthAsync()
+    {
+        if(account==null)
+        {
+            await _message.Error("Vui lòng đăng nhập để mua hàng");
+        }
+        else if(Size != string.Empty && ValueColor != string.Empty || CurrentCount < productColor.Number)
+        {
+            NavigationManager.NavigateTo($"/buynow/{CurrentCount}/{PropertyInput}/{Code}/{ValueColor}/{Size}");
+        }
+        else if (Size == string.Empty && ValueColor == string.Empty )
+        {
+            await _message.Error("Vui lòng chọn Size,Màu");
+        } 
+        else if(CurrentCount > productColor.Number)
+        {
+            await _message.Error("Số lượng không đủ, vui lòng chọn lại số lượng");
+        }
+    }
+    bool liked = false;
+
+    async Task ToggleLike()
+    {
+        if(account==null)
+        {
+            await _message.Error("Vui lòng đăng nhập để mua hàng");
+        }
+        else
+        {
+            liked = !liked;
+            if(liked ==true)
+            {
+                var addItem = new LibraryStoreEcommerce.ProductLike {Code=Code,Screen=1};
+                var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ProductLike>("api/Product/LikeProduct", addItem);   
+                product.Likes =product.Likes + 1;
+                await InsertLike();
+            }
+            else
+            {            
+                var addItem = new LibraryStoreEcommerce.ProductLike {Code=Code,Screen=2};
+                var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ProductLike>("api/Product/LikeProduct", addItem);
+                product.Likes = product.Likes - 1;
+                await DisLike();
+            }
+        }
+
+    }
+    public async Task  InsertLike()
+    {
+        var addItem = new LibraryStoreEcommerce.ProductLike {Code=Code,Screen=1,Account =UserName};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ProductLike>("api/Product/InsertLike", addItem);   
+    }
+    public async Task  DisLike()
+    {
+        var addItem = new LibraryStoreEcommerce.ProductLike {Code=Code,Screen=2,Account =UserName};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ProductLike>("api/Product/InsertLike", addItem);   
+    }
+    ProductCheckLike check = new ProductCheckLike();
+    public async Task CheckLike()
+    {
+        var addItem = new LibraryStoreEcommerce.ProductLike {Code=Code,Account=UserName};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ProductLike>("api/Product/CheckLikeUser", addItem);   
+        check = await response.Content.ReadFromJsonAsync<ProductCheckLike>();
+        if(check.Count !=0)
+        {
+            liked = true;
+        }
+        else
+        {          
+            liked = false;
+        }
+    }
+}

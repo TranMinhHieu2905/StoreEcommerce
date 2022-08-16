@@ -1,0 +1,165 @@
+﻿@page "/adminTax"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@using AntDesign
+@inject NavigationManager NavigationManager
+<head>
+     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/admin.css" rel="stylesheet" />   
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><i class="fa fa-shopping-basket" aria-hidden="true"></i>Quản Lý Thuế</span>
+    </div>
+     <div class="col-2">
+       
+    </div>
+     @* <div class="col-3">
+        <NavLink href="/addcate"><button class="btn btn-success m-r-5">Thêm Mới</button></NavLink>
+    </div>*@
+</div>
+<hr />
+
+<div class="row">
+    <div class="col-4">
+
+    </div>
+    <div class="col-3">
+        <div include="form-input-input()">
+            <input @bind-value="searchInput.TextSearch" placeholder="Tìm kiếm sản phẩm" style=" border-radius: 8px;">                  
+        </div>
+    </div>
+    <div class="col-3">
+          <button style="margin-top: 4px;" class="btn btn-success m-r-5">Tìm kiếm</button> <button style="margin-top: 4px" class="btn btn-success m-r-5">Xoá bộ lọc</button>
+    </div>
+</div>
+<body>
+     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                    <th scope="col">STT</th>
+                                    <th scope="col">TÊN THUẾ</th>
+                                    <th scope="col">GIÁ TRỊ THUẾ</th>
+                                    <th scope="col">HÀNH ĐỘNG</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                @foreach (var item in taxss)
+                                {
+                                <tr>
+                                    <th scope="row">@item.STT</th>
+                                    <td>@item.NameTax</td>
+                                    <td>@item.Value%</td>                                 
+                                    <td>
+                                    <button  @onclick="@(()=>{ _visible1 = true;Name=item.Description;})" class="btn btn-warning">Xem</button>                  
+                                   @* <a href="/detailproductadmin/@item.ID">
+                                    <Button class="btn btn-primary m-r-5">Sửa</Button>
+                                    </a>                   
+                                        <Button class="btn btn-danger m-r-5" OnClick="@(()=>{ _visible = true;Name=item.NameTax;})"> Xóa</Button>                 *@
+                                   </td>     
+                                </tr>              
+                                }      
+                            </tbody>
+                        </table>          
+                </div>                     
+                 <div class="col-1"></div>                      
+            </div>
+        </div>
+</div>
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteTax (@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn xoá <b>@Name</b> không ?</p>    
+</Modal> 
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        >
+    <b>@Name</b> 
+</Modal> 
+</body>
+@code {
+    bool _visible1 = false;
+    string title1 = "Chi tiết thuế";
+    string title = "Xác nhận xoá sản phẩm";
+    bool _visible = false;
+
+    public string Name { get; set; } = string.Empty;
+    public int ID { get; set; } = 0;
+    public int STT = 1;
+    protected override async Task OnInitializedAsync()
+    {          
+        await GetListTax();
+    }
+    SearchInput searchInput = new SearchInput();
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int PageIndex1 = 1;
+    private int itemsPerPage = 12;
+    private int totalPages = 1;
+
+    public async Task DeleteTax(int ID) 
+    {  
+        var addItem  = new Tax {ID=ID};
+        var response = await Http.PostAsJsonAsync<Tax>("api/Tax/Delete", addItem);   
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await Task.Delay(100);
+            await _message.Success("Xoá sản phẩm thành công");
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await _message.Error("Xoá sản phẩm thất bại");    
+        }      
+    }    
+
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false;
+    }  
+
+    List<LibraryStoreEcommerce.Tax> taxss = new List<LibraryStoreEcommerce.Tax>();
+    private async Task GetListTax()
+    {   var addItem = new Tax_SearchInput  { TextSearch = searchInput.TextSearch };
+        var response = await Http.PostAsJsonAsync<Tax_SearchInput>("api/Tax/GetList", addItem);
+        taxss = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Tax>>();  
+    }
+    private async Task RefeshGetListTax()
+    {
+        searchInput.TextSearch = "";
+        var addItem = new Tax_SearchInput  { };
+        var response = await Http.PostAsJsonAsync<Tax_SearchInput>("api/Tax/GetList", addItem);
+        taxss = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Tax>>();  
+    }
+    string selectd = "";
+}

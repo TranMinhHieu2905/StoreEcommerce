@@ -1,0 +1,313 @@
+﻿@page "/admincate"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@inject NavigationManager NavigationManager
+
+<head>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+   <link href="css/admin.css" rel="stylesheet" />
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><i class="fa fa-shopping-basket" aria-hidden="true"></i>Quản Lý Danh Mục Sản Phẩm</span>
+    </div>
+     <div class="col-2">
+       
+    </div>
+      <div class="col-3">
+        <NavLink href="/addcate"><button class="btn btn-success m-r-5">Thêm Mới</button></NavLink>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-3">
+
+    </div>
+    <div class="col-4">
+  
+        <div include="form-input-input()">
+            <input @bind-value="searchInput.TextSearch" placeholder="Tìm kiếm sản phẩm" style=" border-radius: 8px;"> 
+        </div>       
+    </div>
+    <div class="col-3">
+         <button style="margin-top: 4px;" class="btn btn-success m-r-5" @onclick="GetListCategory">Tìm kiếm</button> <button style="margin-top: 4px" class="btn btn-success m-r-5" @onclick="DeleTeFilter">Xoá bộ lọc</button>
+    </div>
+</div>
+
+<body>
+     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+               
+                 <table class="table table-hover" >                 
+             <thead>
+                 <tr style="background-color:#FF9900">
+                <th scope="col">STT</th>
+                <th scope="col">ẢNH</th>
+                <th scope="col">TÊN SẢN PHẨM</th>
+                <th scope="col">HIỂN THỊ</th>
+                <th scope="col">HÀNH ĐỘNG</th>
+            </tr>
+            </thead>
+                    <tbody >
+                        @foreach (var item in categoriepage)
+                        {
+                        <tr>
+                            <th scope="row">@item.STT</th>
+                            <td><img style="width:100px;" src="@item.PictureLink" /></td>
+                            <td>@item.NameCategory</td>
+                            @if(@item.IsActive==0)
+                            {
+                                <td><p>&#10004</p></td>
+                             }
+                             else{
+                                  <td><p>&#10060</p></td>                  
+                             }
+                          <td>
+                                <button @onclick="@(async ()=>await GetCategorybyID(@item.ID))"  class="btn btn-warning">Xem</button>                                
+                                <button class="btn btn-danger m-r-5" @onclick="@(()=>{ _visible = true; ObjectGuid =@item.ObjectGuid;Name =@item.NameCategory;})"> Xóa</button>                 
+                           </td>                                                      
+                        </tr>              
+                        }        
+                    </tbody>
+                </table> 
+                </div>                     
+                 <div class="col-1"></div>    
+                  <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                </AdminStoreEcommerce.Pages.Pagination>
+            </div>
+           
+        </div>
+</div>
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteCategory(@ObjectGuid))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn xoá danh mục <b>@Name</b> không ?</p>  
+@*Edit*@
+</Modal> 
+   @{RenderFragment 
+    footer1 =@<Template>
+        
+    </Template>;
+}  
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1">
+   <EditForm Model="category" OnSubmit="@SubmitEventHandler">
+                       <DataAnnotationsValidator />  
+         <div style="color:#757575;">Tên danh mục</div>
+        <div include="form-input-input()">
+            <Input @bind-Value="category.NameCategory" placeholder="Nhập tên danh mục" style=" border-radius: 8px;"> </Input>
+        </div>   
+         <span style="color:#757575;">Mô tả sản phẩm</span>            
+         <TextArea AutoSize OnResize="OnResize" @bind-Value="@category.Description" /> 
+        <label><ValidationMessage For="() => category.Description" /></label>    
+        <span style="color:#757575;">Hình ảnh</span>         
+        <img src="@category.PictureLink" style="width:100px"/>
+        <br>
+        <br />
+         <label>Thay đổi ảnh danh mục:</label>&nbsp;&nbsp;<label style="color:green">@message</label>
+        <div class="input-group">
+	    <div class="custom-file">
+		    <InputFile class="custom-file-input" multiple OnChange="OnChange" accept="image/png, image/jpeg, image/gif" id="inputFile" />
+	    </div>
+    </div>
+        @foreach (var item in filesBase64)
+        {
+            category.PictureLink = "data:"+@item.contentType+";base64,"+@item.base64data;
+	        <img src="data:@item.contentType;base64,@item.base64data" />
+        }
+        <br />
+        <br />
+         <button @onclick="@(async ()=>await Update(category.ObjectGuid))"  class="btn btn-danger m-r-5">Lưu thay đổi</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+  </EditForm>  
+</Modal> 
+</body>
+@code {
+    public string Name { get; set; } = string.Empty;
+    public Guid ObjectGuid { get; set; } = Guid.Empty;
+    //Load dữ liệu khi vào màn hình
+    protected override async Task OnInitializedAsync()
+    {          
+        await GetListCategory();
+    }
+    SearchInput searchInput = new SearchInput();
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 6;
+    private int totalPages = 1;
+
+    // Delete Category by ObjectGuid
+    public async Task DeleteCategory(Guid ID) 
+    {  
+        _visible = false;
+        var addItem  = new ObjectGuidID {ObjectGuid=ID};
+        var response = await  Http.PostAsJsonAsync<ObjectGuidID>("api/Category/Delete", addItem);   
+
+        if (response.IsSuccessStatusCode)
+        {        
+            string key = $"updatable-{DateTime.Now.Ticks}";
+            var config = new MessageConfig()
+                {
+                    Content = "Loading...",
+                    Key = key
+                };
+            config.Content = "Xoá sản phẩm thành công";
+            config.Duration = 3;
+            await _message.Success(config);              
+            await GetListCategory();
+        }
+        else
+        {
+            await _message.Error("Xoá sản phẩm thất bại");
+        }      
+    }    
+    string title = "Xác nhận xoá danh mục sản phẩm";
+    bool _visible = false;  
+    string title1 = "Xem danh mục sản phẩm";
+    bool _visible1 = false; 
+    // GetCategory
+    List<LibraryStoreEcommerce.Category> categories = new List<LibraryStoreEcommerce.Category>();
+    List<LibraryStoreEcommerce.Category> categoriepage = new List<LibraryStoreEcommerce.Category>();
+    private async Task GetListCategory()
+    {   var addItem = new SearchInput {TextSearch= searchInput.TextSearch};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+        if (categories != null)
+        { 
+            totalPages = (int)Math.Ceiling(categories.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            categoriepage = categories.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Xoá bộ lọc
+    public async Task DeleTeFilter()
+    {
+        searchInput.TextSearch = string.Empty;
+        var addItem = new SearchInput {};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+        if (categories != null)
+        { 
+            totalPages = (int)Math.Ceiling(categories.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            categoriepage = categories.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Phân trang
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (categories != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            categoriepage = categories.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false; 
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false; 
+    }  
+    // Update Category
+    LibraryStoreEcommerce.Category category = new LibraryStoreEcommerce.Category();
+    private void SubmitEventHandler(EditContext context)
+    {
+        if (context.Validate())
+        {
+
+        }
+        else
+        {
+        }
+    }
+    // Get TextArea
+    private void OnResize(OnResizeEventArgs args)
+    {
+        Console.WriteLine($"OnResizeEvent width:{args.Width},height:{args.Height}");
+    }
+    //Get detail Category 
+    private async Task GetCategorybyID(int ID)
+    {  
+        _visible1 = true;
+        var addItem = new CategoryInput {ID=ID};
+        var response = await Http.PostAsJsonAsync<CategoryInput>("api/Category/GetCategorybyID", addItem);
+        category = await response.Content.ReadFromJsonAsync<LibraryStoreEcommerce.Category>();         
+    }
+    //File ảnh
+    string Link = "";
+    List<ImageFile> filesBase64 = new List<ImageFile>();
+    ImageFile files = new ImageFile();
+
+    string message = "Không tệp nào được chọn";
+    bool isDisabled = false;
+    ImageFile imageFile = new ImageFile();
+    async Task OnChange(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(); // get the files selected by the users
+        foreach(var file in files)
+        {
+            var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+            var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+            using (var stream = resizedFile.OpenReadStream())
+            {
+                await stream.ReadAsync(buf); // copy the stream to the buffer
+            }
+
+            imageFile.base64data = Convert.ToBase64String(buf);
+            imageFile.contentType = file.ContentType;
+            imageFile.fileName = file.Name;
+            Link ="data:"+imageFile.contentType+";base64,"+imageFile.base64data;
+            filesBase64.Add(new ImageFile { base64data = Convert.ToBase64String(buf), contentType = file.ContentType, fileName = file.Name }); // convert to a base64 string!!
+        }
+        message = "Đã thêm thành công";
+    }
+    // Update danh mục
+    private async Task Update(Guid ObjectGuidInput)
+    {  
+          var addItem = new  LibraryStoreEcommerce.Category {ObjectGuid=ObjectGuidInput,NameCategory=category.NameCategory,Description=category.Description,PictureLink=category.PictureLink};        
+           var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Category>("api/Category/Update", addItem);
+          if (response.IsSuccessStatusCode)
+            {     _visible1 = false;    
+                  await _message.Success("Cập nhật danh mục thành công");
+                   await GetListCategory();
+            }
+         else
+            {
+                await _message.Error("Cập nhật danh mục thất bại");
+            }   
+    }
+}

@@ -1,0 +1,539 @@
+﻿
+@page "/detailproductadmin/{Code}"
+@using AntDesign
+@using LibraryStoreEcommerce
+@inject NavigationManager NavigationManager
+@inject MessageService _message
+@inject HttpClient Http
+<style>
+    .ant-table-thead>tr>th {
+    font-weight: bold;
+    text-align: center;
+}
+.ant-table-tbody>tr>td {
+    text-align: center;
+}
+</style>
+    <div style="background: azure;">
+        <div class="fix_screen">
+           
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-3">
+                    <div><img style="width: 94px;height: 85px;clip-path: circle(31px at 50% 54%);" src="/img_icon/iconuser.jpg" />
+                        <hr>                       
+                    </div>
+                    <Menu DefaultSelectedKeys=@(new[] { "1" })
+		              DefaultOpenKeys=@(new[] { "sub1" })
+		              Mode=MenuMode.Inline
+		              Theme=MenuTheme.Dark
+		              InlineCollapsed=collapsed>
+		            <SubMenu Key="sub1" TitleTemplate=@sub1Title>
+			            <MenuItem OnClick="Profile" Key="1">Thông tin sản phẩm</MenuItem>
+			            <MenuItem OnClick="ListImage" Key="2">Hình ảnh</MenuItem>
+			            <MenuItem  OnClick="PriceProduct" Key="3">Giá bán</MenuItem>
+			            <MenuItem  OnClick="Properties" Key="4">Thuộc tính</MenuItem>
+		            </SubMenu>
+	            </Menu>
+                </div>
+               
+                                        
+                @if(ShowDetail==1)
+                {   
+                    <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;">
+                    
+                    <div style="font-size: 22px;padding: 18px;">THÔNG TIN SẢN PHẨM</div>
+                     <hr>
+                     <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Trạng thái hiển thị</span>       
+                    <RadioGroup @bind-Value="product.IsActive">
+                        <Radio Style="color:white" Value="0">Hiển thị</Radio>
+                        <Radio Style="color:white" Value="1">Không hiển thị</Radio>
+                    </RadioGroup>
+                   <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Nhà cung cấp</span>                          
+                    <div style="background-color:white;" include="form-input-select()">
+                        <select @bind="product.Supplier" style="border-radius:8px;">
+                            @foreach (var item in systemKeySupplier)
+                            {
+                                    <option style="color:black" value="@item.ID">@item.NameSupplier</option>
+                            }
+                        </select>
+                    </div>    
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Mã sản phẩm</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input readonly @bind-value="product.Code" style=" border-radius: 8px;" type="text" placeholder="Nhập họ và tên"><br>
+                        </div>
+                    </div>  
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Tên sản phẩm</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="product.NameProduct" style=" border-radius: 8px;" type="text" placeholder="Nhập tên sản phẩm"><br>
+                        </div>
+                    </div>  
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Số lượt yêu thích</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input readonly @bind-value="product.Likes" style=" border-radius: 8px;" type="text" placeholder="Nhập tên sản phẩm"><br>
+                        </div>
+                    </div>  
+                    <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Mô tả sản phẩm</span>            
+                    <TextArea AutoSize OnResize="OnResize" @bind-Value="@product.Descriptions" />
+                    <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Loại vận chuyển</span>                          
+                    <div style="background-color:white;" include="form-input-select()">
+                        <select @bind="product.Productship" style="border-radius:8px;">
+                            @foreach (var item in systemKey)
+                            {
+                                    <option style="color:black" value="@item.ID">@item.NameType</option>
+                            }
+                        </select>
+                    </div> 
+                    <br>
+                     <button @onclick="ProductUpdate" class="btn btn-success m-r-5">Lưu Thay Đổi</button>
+                       <br>
+                         <br>
+                </div>
+                }
+               @if(ShowDetail ==2)
+                {
+                     <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;padding:20px">
+                         <h3 style="text-align:center;color:white;">Hình ảnh của sản phẩm</h3>
+                        <Table @ref="table" DataSource="@products" @bind-SelectedRows="selectedRows1"  @bind-PageIndex="_pageIndex" @bind-PageSize="_pageSize">
+                           <Column Title="STT" @bind-Field="@context.STT">                             
+                            </Column> 
+                            <Column Title="Hình ảnh" TData="string">
+                                <img style="width:100px;" src="@context.PictureLink" />                               
+                            </Column>  
+                            <Column Title="Thứ tự" @bind-Field="@context.Displayorder">                             
+                            </Column>  
+                             <Column Title="Thao tác"  TData="string">                                
+                                     <button class="btn btn-danger m-r-5" @onclick="@(()=>{ _visible = true; ID = @context.ID ;})"> Xoá </button>
+                             </Column>                           
+                         </Table>
+                         <label>Thêm ảnh:</label><i class="material-icons" style="color:red;font-size:20px">*</i>&nbsp;&nbsp;<label style="color:green">@Message</label>&nbsp;&nbsp;
+                          <div class="input-group">
+	                        <div class="custom-file">
+		                        <InputFile class="custom-file-input" multiple OnChange="OnChange" accept="image/png, image/jpeg, image/gif" id="inputFile" />
+	                        </div>
+                        </div>
+                            @foreach (var item in filesBase64)
+                            {
+	                            <img src="data:@item.contentType;base64,@item.base64data" />
+                            }
+                            <br />
+                             <br />
+                            <button @onclick="@(async ()=>await InsertImage())" class="btn btn-success m-r-5">Thêm Mới</button>
+                        </div>
+                }     
+                @if(ShowDetail ==3)
+                {
+                     <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;padding:20px">
+                         <h3 style="text-align:center;color:white;">Lịch sử giá của sản phẩm</h3>
+                        <Table @ref="table" DataSource="@productprices" @bind-SelectedRows="selectedRows1"  @bind-PageIndex="_pageIndex" @bind-PageSize="_pageSize">
+                           <Column Title="STT" @bind-Field="@context.STT">                             
+                            </Column> 
+                            <Column Title="Đơn giá" TData="string">
+                                <span>@String.Format("{0:0,0}", context.PriceProduct)<span>đ</span></span>                              
+                            </Column>  
+                            <Column Format="dd/MM/yyyy" Title="Ngày bắt đầu" @bind-Field="@context.CreateTime">                             
+                            </Column> 
+                            <Column Format="dd/MM/yyyy" Title="Ngày kết thúc" TData="string">    
+                                @if(context.EndTime == DateTime.MinValue)
+                                {
+                                    <span></span>
+                                }
+                                else
+                                {
+                                    @context.EndTime
+                                }
+                            </Column> 
+                             <Column Title="Thao tác"  TData="string">
+                                <TitleTemplate>
+                                    <Button>
+                                    <span> 
+                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                              <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                        </svg>
+                                    </span>
+                                    </Button>
+                                </TitleTemplate>
+                                <ChildContent>
+                                     <Button>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                    </svg>
+                                     </Button>
+                                </ChildContent>
+                             </Column>                           
+                         </Table>
+                         <span>Thêm giá mới</span>
+                         <hr>
+                          <RadioGroup @bind-Value="@_intValue">
+                            <Radio Style="color:white" Value="1">Nhập số tiền</Radio>
+                            <Radio Style="color:white" Value="2">Nhập % giảm giá</Radio>
+                        </RadioGroup>
+                        <br/>
+                          <br/>
+                        @if(_intValue ==1)
+                    {
+                        saleProductInput.Percent = 0;
+                        <div style="margin-left: 16px;" include="form-input-input()">
+                                <span>Giá: &ensp;
+                                    <input  @bind-value="saleProductInput.Price" style="width: 260px;color:black" type="text" class="divdangnhapuser" placeholder="Nhập số tiền" />
+                                  </span> 
+                            </div> <br />
+                        }
+                        @if(_intValue ==2)
+                        {
+                        saleProductInput.Price = 0;
+                        <div style="margin-left: 16px;" include="form-input-input()">
+                                <span>Nhập %: &ensp;
+                                    <input @bind-value="saleProductInput.Percent" style="width: 260px;color:black" type="text" class="divdangnhapuser" placeholder="Nhập %" />
+                                  </span> 
+                        </div> <br />
+                        }
+                        @* <div style="margin-left: 16px;" include="form-input-input()">
+                              <span>Ngày bắt đầu: &ensp;
+                              <DatePicker @bind-Value="saleProductInput.EndTime" Format="dd/MM/yyyy" />
+                              </span>
+                          </div>*@
+                         <br />
+                            <button @onclick="ProductUpdatePrice" class="btn btn-success m-r-5">Thêm Mới</button>
+                        </div>
+                }  
+                @if(ShowDetail ==4)
+                {
+                     <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;padding:20px">
+                         <h3 style="text-align:center;color:white;">Hình ảnh của sản phẩm</h3>
+                        <Table @ref="table" DataSource="@productss" @bind-SelectedRows="selectedRows1"  @bind-PageIndex="_pageIndex" @bind-PageSize="_pageSize">
+                           <Column Title="STT" @bind-Field="@context.STT">                             
+                            </Column> 
+                            <Column Title="Màu sắc" @bind-Field="@context.Value">                                                      
+                            </Column>  
+                             <Column Title="Thao tác"  TData="string">                                
+                                     <button class="btn btn-danger m-r-5" @onclick="@(()=>{ _visible1 = true; ID = @context.ID ;Name=@context.Value;})"> Xoá </button>
+                             </Column>                           
+                         </Table>
+                         <label>Thêm màu sắc:</label>
+                        
+                        <Select Mode="multiple"
+                        Placeholder="Chọn màu sắc"
+		                @bind-Values="@_selectedValues1"
+		                TItemValue="string"
+		                TItem="string"
+		                OnSelectedItemsChanged="OnSelectedItemsChangedHandler"
+		                Style="width: 100%; margin-bottom: 8px;"
+		                EnableSearch
+		                AllowClear>
+		                <SelectOptions>
+			                @foreach(var item in defaultOuputs)
+			                {
+				                <SelectOption TItemValue="string" TItem="string" Value=@item.Value Label=@item.Value />
+			                }
+		                </SelectOptions>
+		                </Select>
+                            <button @onclick="@(async ()=>await AddProductColor())" class="btn btn-success m-r-5">Thêm Mới</button>
+                        </div>
+                }     
+                <div class="col-1"></div>               
+           </div>      
+    </div>
+    </div>
+  @*  Xóa ảnh*@
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteImage (@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn xoá ảnh này không ?</p>    
+ @*   Xóa thuộc tính*@
+</Modal> 
+   @{RenderFragment 
+    footer1 =@<Template>
+         <button  @onclick="@(async ()=>await DeleteColor (@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1">
+    <p>Bạn có muốn xoá thuộc tính @Name không ?</p>    
+</Modal> 
+@code
+{
+    [Parameter]
+    public string Code { get; set; } = string.Empty;
+    int _intValue = 0;
+    int _pageIndex = 1;
+    int _pageSize = 5;
+    public string Name { get; set; } = string.Empty;
+    public int ID { get; set; } = 0;
+    string title = "Xác nhận xoá ảnh";
+    bool _visible = false;
+     string title1 = "Xác nhận xoá thuộc tính";
+    bool _visible1 = false;
+
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1 = false;
+    }  
+    void handleChange(string value)
+    {
+        Console.WriteLine(value);
+    }
+    void handleChange1(string value)
+    {
+        Console.WriteLine(value);
+    }  
+    int ShowDetail = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetOneProduct();
+        await GetSystemKeySupplier();
+        await GetSystemKey();
+        await GetListImage();
+        await GetListPrice();
+        await GetColor();
+        await GetListColor();
+    }
+    RenderFragment sub1Title =
+	@<span>
+		<Icon Type="user" Theme="outline"></Icon>
+		<span>Thông tin sản phẩm</span>
+    </span>
+    ;
+    bool collapsed = false;
+    void ToggleCollapsed()
+    {
+        collapsed = !collapsed;
+    }
+    public void Profile()
+    {
+        ShowDetail = 1;
+    } 
+    public void ListImage()
+    {
+        ShowDetail = 2;
+    }
+    public void PriceProduct()
+    {
+        ShowDetail = 3;
+    }
+    public void Properties()
+    {
+        ShowDetail = 4;
+    }
+    // Get List Nhà cung cấp
+    List<Supplier> systemKeySupplier = new  List<Supplier>();
+    Supplier Supplier = new  Supplier();
+    public async Task GetSystemKeySupplier()
+    {
+        systemKeySupplier = await Http.GetFromJsonAsync< List<Supplier>>($"api/SystemKey/Supplier");
+    }
+    LibraryStoreEcommerce.Product product = new LibraryStoreEcommerce.Product();
+    // Chi tiết thông tin sản phẩm
+    private async Task GetOneProduct()
+    {   var addItem = new GetImg {Code = Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/GetOne", addItem);
+        product = await response.Content.ReadFromJsonAsync<LibraryStoreEcommerce.Product>();  
+    }
+    // Get List Loại vận chuyển
+    List<SystemKey> systemKey = new  List<SystemKey>();
+    public async Task GetSystemKey()
+    {
+        systemKey = await Http.GetFromJsonAsync< List<SystemKey>>($"api/SystemKey/Type");
+    }
+    ITable table;
+    IEnumerable<Product> selectedRows1;
+    // Get List Image
+    List<LibraryStoreEcommerce.Product> products = new List<LibraryStoreEcommerce.Product>();
+    private async Task GetListImage()
+    {   var addItem = new GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/GetListImage", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    // Delete Image
+    public async Task DeleteImage(int ID) 
+    {  
+        var addItem  = new ProductInput {ID=ID};
+        var response = await Http.PostAsJsonAsync<ProductInput>("api/Product/DeleteImage", addItem);   
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await _message.Success("Xoá ảnh thành công");
+            products = products.Where(c => c.ID != ID).ToList();
+        }
+        else
+        {
+            await _message.Error("Xoá ảnh thất bại");    
+        }      
+    }    
+    //Insert Image
+    public async Task InsertImage() 
+    {  
+        var addItem  = new ProductAddInput {Code = Code,PictureLink = Link};
+        var response = await Http.PostAsJsonAsync<ProductAddInput>("api/Product/InsertIMG", addItem);   
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await _message.Success("Thêm ảnh thành công");
+            await GetListImage();
+            filesBase64.Clear();
+        }
+        else
+        {
+            await _message.Error("Thêm ảnh thất bại");    
+        }      
+    }    
+    // Image
+    string Link = "";
+    List<ImageFile> filesBase64 = new List<ImageFile>();
+    ImageFile files = new ImageFile();
+    string Message = "Không có tệp nào được chọn";
+    string message = "InputFile";
+    bool isDisabled = false;
+    ImageFile imageFile = new ImageFile();
+    async Task OnChange(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(); // get the files selected by the users
+        foreach(var file in files)
+        {
+            var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+            var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+            using (var stream = resizedFile.OpenReadStream())
+            {
+                await stream.ReadAsync(buf); // copy the stream to the buffer
+            }
+
+            imageFile.base64data = Convert.ToBase64String(buf);
+            imageFile.contentType = file.ContentType;
+            imageFile.fileName = file.Name;
+            Link ="data:"+imageFile.contentType+";base64,"+imageFile.base64data;
+            filesBase64.Add(new ImageFile { base64data = Convert.ToBase64String(buf), contentType = file.ContentType, fileName = file.Name }); // convert to a base64 string!!
+        }
+        Message = "Đã thêm thành công";
+    }
+    //Get List Price
+    List<LibraryStoreEcommerce.Product> productprices = new List<LibraryStoreEcommerce.Product>();
+    private async Task GetListPrice()
+    {   var addItem = new GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/ListPrice", addItem);
+        productprices = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    // Get TextArea
+    private void OnResize(OnResizeEventArgs args)
+    {
+        Console.WriteLine($"OnResizeEvent width:{args.Width},height:{args.Height}");
+    }
+    // Sửa thông tin sản phẩm
+    private async Task ProductUpdate()
+    {   var addItem = new ProductAddInput {Code=product.Code,NameProduct=product.NameProduct,
+        IsActive =product.IsActive,Descriptions= product.Descriptions,Type=product.Productship,Supplier=product.Supplier,ID = product.ID};
+        var response = await Http.PostAsJsonAsync<ProductAddInput>("api/Product/ProductUpdate", addItem); 
+        if (response.IsSuccessStatusCode)  
+        {
+            await _message.Success("Sửa sản phẩm thành công");
+            await GetOneProduct();
+        }
+        else
+        {
+            await _message.Error("Sửa sản phẩm thất bại");    
+        }   
+    }
+    // Cập nhật giá sản phẩm 
+    SaleProductInput saleProductInput = new SaleProductInput();
+    private async Task ProductUpdatePrice()
+    {
+        if(saleProductInput.Price !=0)
+        {
+            var addItem = new SaleProductInput {Code = Code,TypePrice = 1,EndTime =saleProductInput.EndTime,Price =saleProductInput.Price};
+            var response = await Http.PostAsJsonAsync<SaleProductInput>("api/Product/SalePrice", addItem); 
+            if (response.IsSuccessStatusCode)  
+            {
+                await _message.Success("Thêm giá sản phẩm thành công");
+                await GetListPrice();
+            }
+            else
+            {
+                await _message.Error("Sửa giá sản phẩm thất bại");    
+            }   
+        }
+        else if(saleProductInput.Percent !=0)
+        {
+            var addItem = new SaleProductInput {Code = Code,TypePrice = 2,EndTime = saleProductInput.EndTime,Price =saleProductInput.Percent};
+            var response = await Http.PostAsJsonAsync<SaleProductInput>("api/Product/SalePrice", addItem); 
+            if (response.IsSuccessStatusCode)  
+            {
+                await _message.Success("Thêm giá sản phẩm thành công");
+                 await GetListPrice();
+            }
+            else
+            {
+                await _message.Error("Sửa giá sản phẩm thất bại");    
+            }   
+        }       
+    } 
+    // Thuộc tính sản phẩm   
+     List<LibraryStoreEcommerce.Product> productss = new List<LibraryStoreEcommerce.Product>();
+    private async Task GetColor()
+    {   var addItem = new GetImg {Code=@Code};
+        var response = await Http.PostAsJsonAsync<GetImg>("api/Product/GetColor", addItem);
+        productss = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    List<DefaultOuput> defaultOuputs = new List<DefaultOuput>();
+    private async Task GetListColor()
+    {   var addItem = new DefaultValue {ID=4};
+        var response = await Http.PostAsJsonAsync<DefaultValue>("api/SystemKey/Default", addItem);
+        defaultOuputs = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.DefaultOuput>>();  
+    }
+    IEnumerable<string> _selectedValues1;
+     private void OnSelectedItemsChangedHandler(IEnumerable<string> values)
+    {
+		if (values != null)
+			Console.WriteLine($"selected: ${string.Join(",", values)}");
+    }
+    // Add thêm color
+    public async Task AddProductColor()
+    {
+        foreach (var item in _selectedValues1)
+        {         
+            var AddItem = new LibraryStoreEcommerce.Product{Code =Code,Number=100,@Value =item,Property =4 };
+            var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Product>("api/Product/InsertColor",AddItem);  
+        } 
+         await GetColor();
+    }
+    // Delete Color
+    public async Task DeleteColor(int ID) 
+    {  
+        var addItem  = new ProductInput {ID=ID};
+        var response = await Http.PostAsJsonAsync<ProductInput>("api/Product/DeleteProperties", addItem);   
+        if (response.IsSuccessStatusCode)
+        {
+            _visible1 = false;
+            await _message.Success("Xoá thuộc tính thành công");
+            await GetColor();
+        }
+        else
+        {
+            await _message.Error("Xoá thuộc tính thất bại");    
+        }      
+    }   
+}

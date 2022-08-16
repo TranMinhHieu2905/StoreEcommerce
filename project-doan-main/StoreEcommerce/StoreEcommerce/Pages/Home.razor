@@ -1,0 +1,284 @@
+﻿@page "/"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  @* <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">*@
+   <link href="css/home.css" rel="stylesheet" />  
+     <link href="/bootstrap.min.css.map" rel="stylesheet" />  
+     <link href="/bootstrap.min.css" rel="stylesheet" />  
+</head>
+<body>
+    <div style="border-bottom: 1px solid #DADADA;margin-top: 17px;">
+         <div class="fix_screen">
+         <div class="row">
+            <div class="col-1"></div>
+            <div class="col-7">
+              <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                <!-- Indicators -->
+                <ol class="carousel-indicators">
+                  <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                  <li data-target="#myCarousel" data-slide-to="1"></li>
+                  <li data-target="#myCarousel" data-slide-to="2"></li>
+                </ol>
+
+                <!-- Wrapper for slides -->
+                <div class="carousel-inner">
+                  <div class="item active">
+                       <img src="./imagefooter/carousel_img_1.png" style="width:100%"; />
+                  </div>
+
+                  <div class="item">
+                     <img src="./imagefooter/carousel_img_2.png" style="width:100%"; />
+                  </div>
+    
+                  <div class="item">
+                    <img src="./imagefooter/carousel_img_3.png" style="width:100%"; />
+                  </div>
+                </div>
+
+                <!-- Left and right controls -->
+                <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+                  <span class="glyphicon glyphicon-chevron-left"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#myCarousel" data-slide="next">
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+              </div>
+            </div>
+            <div class="col-3">
+                <div class="setposition" style="padding-bottom: 5px;"><img src="./imagefooter/carousel_img_4.png" class="set_img"/></div>
+                <div class="setposition" style="padding-top: 5px;"><img src="./imagefooter/carousel_img_5.png"   class="set_img"  /></div>
+            </div>
+            <div class="col-1">
+            </div>
+        </div>
+          @*Icon_sale*@
+        <div class="row" style="margin-top:10px">
+            <div class="col-1">
+             </div>
+             <div class="col-10">
+                 <div class="row">
+                      <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_1.png" class="imgicon" />
+                            </a>
+                            <div class="imgclass">Khung Giờ Săn Sale</div>
+                        </div>
+                        <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_2.png" class="imgicon" />
+                            </a>
+                             <div class="imgclass">Gì cũng Rẻ - Mua Là FreeShip</div>
+                        </div>
+                        <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_3.png" class="imgicon" />
+                            </a>
+                            <div class="imgclass">Hàng Hiệu -50%</div>
+                        </div>
+                        <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_4.png" class="imgicon" />
+                            </a>
+                             <div class="imgclass">Hàng Quốc Tế</div>
+                        </div>
+                        <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_5.png" class="imgicon" />
+                            </a>
+                             <div class="imgclass">Hàng Hiệu -50%</div>
+                        </div>
+                        <div class="col-2 img_icon">
+                            <a href="">
+                                 <img src="./imagefooter/iconsale_6.png" class="imgicon" />
+                            </a>
+                             <div class="imgclass">Săn Sale 1k</div>
+                        </div>
+                 </div>
+             </div>          
+        </div>
+         <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10 resCarouselsetup">
+                    <div style="height:32px;padding-top:7px;@ThemeInfo.ButtonClass"><b>DANH MỤC</b></div>
+                    <div class="p8">      
+                        <div class="resCarousel" data-items="2-3-4-5" data-slide="5" data-speed="900" data-interval="4000" data-load="3" data-animator="lazy">
+                            <div class="resCarousel-inner" id="eventLoad">
+                                @foreach (var item in categories)
+                                {        <a style="text-decoration: none;" href="detailproduct/@item.ID">
+                                         <div class="item">                            
+                                                <div class="tile">
+                                                     <AntDesign.Button Style="height:120px">
+                                                        <div style=" width:103px;height: 34px;min-height: unset;">    
+                                                            <img class="imgsetup" src="@item.PictureLink" >     
+                                                              <p style="color:#1890ff">@item.NameCategory</p>
+                                                        </div> 
+                                                   </AntDesign.Button>
+                                                 </div> 
+                                            </div>                 
+                                        </a>                                                                 
+                                }               
+                            </div>
+                            <button class='btn btn-default leftRs' style="margin-top:48px;"> <span class="glyphicon glyphicon-chevron-left"></span></button>
+                            <button class='btn btn-default rightRs' style="margin-top:48px;"> <span class="glyphicon glyphicon-chevron-right"></span></button>
+                        </div>
+                   </div>
+              </div>               
+              <div class="col-1"></div>               
+        </div>
+            <div class="row" style="margin-right: 0 !important;margin-left:0 !important">
+                     <div class="col-1"></div>
+                     <div class="col-10">                        
+                          <div class="row background_center">
+                              <div style="height: 39px;padding: 10px;border-bottom:3px solid @ThemeInfo.ButtonClassColor;@ThemeInfo.ButtonClass"><b>DANH MỤC SẢN PHẨM HOT</b></div>
+                              @foreach (var item in products)
+                              {
+                                  <div class="col-2" style="margin-bottom: 10px;min-height: 235px">
+                                        <a style="text-decoration: none;" href="productdetail/@item.Code">
+                                            <div class="divnhomsanpham">
+                                                 <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                <div style="margin-top:13px;">
+                                                     <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                     <div style="min-height:10px;"></div>
+                                                     <div>@item.Code</div>
+                                                      <div style="min-height:10px;"></div>
+                                                    <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                </div>
+                                             </div>                                               
+                                        </a>                                                                              
+                                  </div>
+                              }  
+      
+                    <Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                                PageIndex="@PageIndex"
+                                Radius=3
+                                OnSelectedPage="@SelectedPage">
+                    </Pagination>
+                            </div>
+                     </div>
+            </div>
+        <hr />
+        <div class="row" style="margin-right: 0 !important;margin-left:0 !important">
+                     <div class="col-1"></div>
+                     <div class="col-10">                         
+                          <div class="row background_center">
+                              <div style="height: 39px;padding: 10px;border-bottom:4px solid @ThemeInfo.ButtonClassColor;@ThemeInfo.ButtonClass"><b>DANH MỤC SẢN PHẨM MỚI VỀ</b></div>
+                                  @foreach (var item in productsnew)
+                                 {
+                                     <div class="col-2" style="margin-bottom: 10px;">
+                                            <a style="text-decoration: none;" href="productdetail/@item.Code">
+                                                <div class="divnhomsanpham">
+                                                     <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                    <div style="margin-top:13px;">
+                                                         <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                         <div style="min-height:10px;"></div>
+                                                         <div>@item.Code</div>
+                                                          <div style="min-height:10px;"></div>
+                                                           <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                    </div>
+                                                 </div>                                               
+                                            </a> 
+                                    </div>
+                                 }
+                              <Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                                    PageIndex="@PageIndex1"
+                                    Radius=3
+                                    OnSelectedPage="@SelectedPageProductNew">
+                               </Pagination>             
+                                 
+                               </div>
+                     </div>
+        </div>  
+    </div>
+    </div>
+</body>
+</html>
+@code
+{
+    [CascadingParameter]
+    protected ThemeInfo? ThemeInfo { get; set; }
+    List<Category> categories = new List<Category>();
+    List<Product> products = new List<Product>();
+    List<Product> Allproducts = new List<Product>();
+    List<Product> productsnew = new List<Product>();
+    List<Product> Allnewproducts = new List<Product>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetListCategory();
+        await GetListProduct();
+        await GetListProductNew();
+    }
+    private async Task GetListCategory()
+    {   var addItem = new SearchInput {};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<Category>>();  
+    }
+    private async Task GetListProduct()
+    {   var addItem = new Product_SearchInput {};
+        var response = await Http.PostAsJsonAsync<Product_SearchInput>("api/Product/GetList", addItem);
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private async Task GetListProductNew()
+    {   var addItem = new Product_SearchInput {Screen=1};
+        var response = await Http.PostAsJsonAsync<Product_SearchInput>("api/Product/GetList", addItem);
+        Allnewproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allnewproducts != null)
+        {
+            totalPages = (int)Math.Ceiling(Allnewproducts.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            productsnew = Allnewproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+     private async Task GetListProductAdmin()
+    {   var addItem = new Product_SearchInput {Screen=2};
+        var response = await Http.PostAsJsonAsync<Product_SearchInput>("api/Product/GetList", addItem);
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int PageIndex1 = 1;
+    private int itemsPerPage = 12;
+    private int totalPages = 1;
+
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (Allproducts != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void SelectedPageProductNew(int selectedPageIndex)
+    {
+        if (Allproducts != null)
+        {
+            PageIndex1 = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex1 - 1);
+            productsnew = Allnewproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+}

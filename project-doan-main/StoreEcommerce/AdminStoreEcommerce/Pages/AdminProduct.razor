@@ -1,0 +1,254 @@
+@page "/adminproduct"
+
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@using AntDesign
+@inject NavigationManager NavigationManager
+<head>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+   <link href="css/admin.css" rel="stylesheet" />
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><i class="fa fa-shopping-basket" aria-hidden="true"></i>Quản Lý Thông Tin Sản Phẩm</span>
+    </div>
+     <div class="col-2">
+       
+    </div>
+     <div class="col-3">
+        <NavLink href="/addproduct"><button class="btn btn-success m-r-5">Thêm Mới</button></NavLink>   
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div style="text-align:center">
+    </div>
+    <div class="col-4">
+
+    </div>
+    <div class="col-3">
+         <div style="background-color:white;" include="form-input-select()">
+          <select style="border-radius:8px;" @onchange="DoStuff">
+              @foreach (var item in categories)
+                {
+                     <option value="@item.ID">@item.NameCategory</option>
+                }
+        </select>
+        </div>
+        <div include="form-input-input()">
+            <input @bind-value="searchInput.TextSearch" placeholder="Tìm kiếm sản phẩm" style=" border-radius: 8px;">
+        </div>              
+    </div>
+    <div class="col-3" style="margin-top: 72px;">
+          <button style="margin-top: 4px;" class="btn btn-success m-r-5" @onclick="GetProductbyIDSearch">Tìm kiếm</button> <button @onclick="DeleteFilter"  style="margin-top: 4px" class="btn btn-success m-r-5">Xoá bộ lọc</button>
+    </div>
+</div>
+<body>
+     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">               
+                <div class="col-1"></div>
+                <div class="col-10"> 
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                    <th scope="col">STT</th>
+                                    <th scope="col">ẢNH</th>
+                                    <th scope="col">TÊN SẢN PHẨM</th>
+                                    <th scope="col">MÃ SẢN PHẨM</th>
+                                    <th scope="col">LƯỢT YÊU THÍCH</th>
+                                    <th scope="col">GIÁ</th>
+                                    <th scope="col">HIỂN THỊ</th>
+                                    <th scope="col">HÀNH ĐỘNG</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                @foreach (var item in products)
+                                {
+                                <tr>
+                                    <th scope="row">@item.STT</th>
+                                    <td><img src="@item.PictureLink" style="width:100px"/></td>
+                                    <td>@item.NameProduct</td>
+                                    <td>@item.Code</td>                                   
+                                    <td>@item.Likes</td>
+                                     <td>@item.Price</td>
+                                    @if(@item.IsActive==0)
+                                    {
+                                        <td><p>&#10004</p></td>
+                                     }
+                                     else{
+                                          <td><p>&#10060</p></td>                  
+                                     }
+                                    <td style="width: 215px;">
+                                        <a href="/detailproductadmin/@item.Code">
+                                        <button class="btn btn-warning">Xem</button>                  
+                                        </a>
+                                        <a href="/detailproductadmin/@item.Code">
+                                        <button class="btn btn-primary m-r-5">Sửa</button>
+                                        </a>                   
+                                         <button class="btn btn-danger m-r-5"  @onclick="@(()=>{ _visible = true; ID =@item.ID ;Name =@item.NameProduct;})">Xóa</button>                                  
+                                    </td>
+                                </tr>              
+                                }      
+                            </tbody>
+                        </table>          
+                </div>                     
+                 <div class="col-1"></div>   
+                 <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+             </AdminStoreEcommerce.Pages.Pagination>
+            </div>
+            
+        </div>
+</div>
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteProduct (@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn xoá <b>@Name</b> không ?</p>    
+</Modal> 
+</body>
+@code {
+    public string Name { get; set; } = string.Empty;
+    public int ID { get; set; } = 0;
+    List<Product> Allproducts = new List<Product>();
+    List<Product> products = new List<Product>();
+    public int STT = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategoryID();
+        await GetListCategory(); 
+        await GetProductbyID();
+    }
+    SearchInput searchInput = new SearchInput();
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int PageIndex1 = 1;
+    private int itemsPerPage = 6;
+    private int totalPages = 1;
+    // Xóa sản phẩm
+    public async Task DeleteProduct(int ID) 
+    {  
+        var addItem  = new ProductInput {ID=ID};
+        var response = await Http.PostAsJsonAsync<ProductInput>("api/Product/Delete", addItem);   
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await _message.Success("Xoá sản phẩm thành công");
+            products = Allproducts.Where(c => c.ID != ID).ToList();
+        }
+        else
+        {
+            await _message.Error("Xoá sản phẩm thất bại");    
+        }      
+    }    
+    string title = "Xác nhận xoá sản phẩm";
+    bool _visible = false;
+
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }  
+    // GetCategory
+    List<LibraryStoreEcommerce.Category> categories = new List<LibraryStoreEcommerce.Category>();
+    private async Task GetListCategory()
+    {   var addItem = new SearchInput {};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+    }
+    // Lấy giá trị từ Select
+    string selectd = "";
+    int result=0;
+    public async Task DoStuff(ChangeEventArgs e)
+    {
+        selectd = e.Value.ToString();
+        result = Int32.Parse(selectd);
+        var addItem = new ProductAdminInput {ID=result,TextSearch=searchInput.TextSearch};
+        var response = await Http.PostAsJsonAsync<ProductAdminInput>("api/Category/GetListProductbyCategoryID", addItem); 
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    //GetCategoryID
+    LibraryStoreEcommerce.Category category = new LibraryStoreEcommerce.Category();
+    public async Task GetCategoryID()
+    {
+        category = await Http.GetFromJsonAsync<LibraryStoreEcommerce.Category>($"api/Category/GetCategoryID");
+    }
+    //GetProductbyID
+    public async Task GetProductbyID()
+    {
+        var addItem = new ProductAdminInput {ID=category.ID};
+        var response = await Http.PostAsJsonAsync<ProductAdminInput>("api/Category/GetListProductbyCategoryID", addItem);
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    //Get List khi Search
+    public async Task GetProductbyIDSearch()
+    {
+        var addItem = new ProductAdminInput {ID=result,TextSearch=searchInput.TextSearch};
+        var response = await Http.PostAsJsonAsync<ProductAdminInput>("api/Category/GetListProductbyCategoryID", addItem);
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    public async Task DeleteFilter()
+    {
+        searchInput.TextSearch = string.Empty;
+        var addItem = new ProductAdminInput {ID=result};
+        var response = await Http.PostAsJsonAsync<ProductAdminInput>("api/Category/GetListProductbyCategoryID", addItem);
+        Allproducts = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproducts != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allproducts.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Phân trang
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (Allproducts != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            products = Allproducts.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+}

@@ -1,0 +1,436 @@
+﻿@page "/buynow/{Number:int}/{Properties:int}/{key}/{value}/{size}"
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject MessageService _message
+@inject HttpClient Http
+@using Blazored.LocalStorage;
+@using AntDesign
+@using LibraryStoreEcommerce
+@using System.Globalization
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+   <link href="css/cart.css" rel="stylesheet" />
+</head>
+    
+<body style="background-color: aliceblue;padding-top: 15px;" >
+    <div class="fix_screen">
+        <div class="row" style="margin-left:auto;margin-right:auto;max-width: 1180px;">
+             <div class="col-8">  
+
+                 <div style="background-color: white;">
+                    <div class="row setuprow" style="background-color: beige;">    
+                        <div class="col-4">
+                             <div class="labletext"><Icon Type="environment" /> Địa chỉ giao hàng</div>
+                        </div>
+                        <div class="col-6">
+                                 
+                        </div>
+                        <div class="col-2">
+                            <a><div style="color:#757575;" class="labletext" @onclick="_=>open()">Chỉnh sửa</div></a>    
+                                <div>                                  
+                                    <Drawer Width="430" Closable="true" Visible="visible" Placement="right" Title='("Địa chỉ nhận hàng")' OnClose="_=>close()">
+                                        <div class="row" style="border: 1px solid #c0bdbd;">
+                                            <div class="col-2"></div>
+                                        <div class="col-10">
+                                            <RadioGroup @bind-Value="@ID">
+                                                <button style="float: right;margin-top: 6px" @onclick="@(async ()=>await OkAdress())" class="btn btn-success m-r-5">Cập nhật</button>
+                                               @* <Radio Style="@style" Value="@("A")">
+                                                         <span class="labletext_ver">@accountInput.FullName</span>  &nbsp;&nbsp; <span class="labletext_ver">@accountInput.Phone</span><br />
+                                                   <Icon Type="home" Theme="outline"/>&nbsp;&nbsp;<span class="labletext_ver" style="color:#757575;font-size:13px">@accountInput.Address, @accountInput.DistrictName, @accountInput.ProvinceName</span>                                                    
+                                               </Radio> 
+                                               <hr>*@
+                                               @foreach (var item in listaddressnew)
+                                                {
+                                                        <RadioGroup @bind-Value="@ID">
+                                                            <Radio Style="@style" Value="@item.ID">
+                                                            <span class="labletext_ver">@Name</span>  &nbsp;&nbsp; <span class="labletext_ver">@Phone</span><br />
+                                                        <Icon Type="home" Theme="outline"/>&nbsp;&nbsp;<span class="labletext_ver" style="color:#757575;font-size:13px">@item.AddressName, @item.DistrictName, @item.ProvinceName</span>                                                    
+                                                        </Radio>
+                                                        </RadioGroup>
+                                                }
+                                                   <Radio Style="@style" Value="@(999)">
+                                                    Khác...<br>
+                                                    @if (@ID == 999)
+                                                    {
+                                                      <label style="color:black">Chọn thành phố</label>
+                                                          <div style="background-color:white;" include="form-input-select()">
+                                                              <select style="border-radius:8px;" @onchange="handleChange">
+                                                                  <option hidden value="">Chọn thành phố</option>
+                                                                  @foreach (var item in listaddress)
+                                                                    {
+                                                                         <option value="@item.ProvinceCode">@item.AddressName</option>
+                                                                    }
+                                                             </select>
+                                                          </div>
+                                                             <label style="color:black">Chọn quận,huyện</label> 
+                                                          <div style="background-color:white;" include="form-input-select()">
+                                                              <select style="border-radius:8px;" @onchange="handleChange1">
+                                                                   <option hidden value="">Chọn quận,huyện</option>
+                                                                  @foreach (var item in listdistrict)
+                                                                    {
+                                                                         <option value="@item.ProvinceCode">@item.AddressName</option>
+                                                                    }
+                                                             </select>
+                                                          </div>
+                                                         <label style="color:black">Địa chỉ</label>
+                                                        <div class="user-box">
+                                                                <div include="form-input-input()">
+                                                                    <input @bind-value="addressNewInput.Address" style=" border-radius: 8px;" type="text" placeholder="Nhập địa chỉ cụ thể,số nhà"/><br>
+                                                                </div>
+                                                         </div><br>
+                                                        <button style="margin-bottom:7px;" @onclick="@(async ()=>await InsertAdress())" class="btn btn-success m-r-5">Thêm Mới</button>
+                                                    }
+                                                </Radio>                                                
+                                            </RadioGroup>
+                                           
+                                        </div>
+                                          </div>   
+                                    </Drawer>                                   
+                                </div>
+                        </div>
+                    </div>
+                    <div class="row">    
+                        <div class="col-3">
+                             <div class="labletext">@Name</div>
+                        </div>
+                        <div class="col-2">
+                             <p class="labletext_ver">@Phone</p>
+                        </div>
+                        <div class="col-2">
+                                
+                        </div>
+                    </div>
+                     <div class="row">    
+                        <div class="col-3">
+                             <div class="labletext">Nhà</div>
+                        </div>
+                        <div class="col-8">
+                             <p class="labletext_ver">@accountInput.Address, @accountInput.DistrictName, @accountInput.ProvinceName </p>
+                        </div>
+                        <div class="col-2">
+                                
+                        </div>
+                    </div>
+
+                    </div>
+                         <Table @ref="table" DataSource="@products" @bind-SelectedRows="selectedRows1" >
+                            <Column Title="STT" @bind-Field="@context.STT">                          
+                            </Column>
+                            <Column Title="Tất cả" TData="string">
+                                <img style="width:100px;" src="@context.PictureLink" />                               
+                            </Column>
+                            <Column Title="Sản phẩm" TData="string">   
+                                <div style="font-size:17px">@context.NameProduct</div>
+                                <div><span style="color:#757575;">@context.Properties: @context.Value</span></div>
+                                  <div><span style="color:#757575;">Size: @context.Size</span></div>
+                            </Column>
+                            <Column Title="Đơn giá" TData="string">
+                                @context.Price
+                             </Column>
+                           <Column Style="text-align:center;" Title="Số lượng" TData="string">    
+                               @Number
+                            </Column>
+                            <Column Title="Tổng Cộng" TData="string">
+                                @{                          
+                                     Tong = @Number * @context.PriceProduct;
+                                     <span>@String.Format("{0:0,0}", Tong)<span>đ</span></span>
+                                 }                                       
+                            </Column>                                                 
+                         </Table>
+              </div>
+          <div style="background-color: white; height:523px;" class="col-4">
+                   <Button OnClick="AddBuy"  Style="width:100%;height:50px;margin-top:5px;" Type="@ButtonType.Primary">ĐẶT HÀNG</Button>
+                  <br />
+                   <br />
+                <b><p>CHỌN PHƯƠNG THỨC THANH TOÁN</p></b> 
+                <div>
+                    <RadioGroup @bind-Value="@radioValue">
+                        <Radio Style="@style1" Value="1"><Icon Type="shopping-cart" Theme="outline"/>Thanh toán khi nhận hàng</Radio>
+                        <Radio Style="@style1" Value="2"><Icon Type="mobile" Theme="outline"/>Thanh toán bằng momo</Radio>
+                        <Radio Style="@style1" Value="3"><Icon Type="bank" Theme="outline"/>Thanh toán bằng ngân hàng</Radio>                        
+                    </RadioGroup>
+                </div>
+                <hr>
+                 <div style="margin-left: 16px;" include="form-input-input()">
+                    <input style="width: 260px;" type="text" class="divdangnhapuser" placeholder="Mã giảm giá" /><Button Style="height: 41px;" Type="@ButtonType.Primary">ÁP DỤNG</Button>
+                 </div>
+                 <br />
+                  <div style="margin-left: 18px;"><b>Thông tin đơn hàng</b></div>
+                 <div style="display: flex;">                   
+                      <div class="setuplabel">Tạm tính (@Number sản phẩm)</div>
+                     <div style="color:black;margin-top:10px;"><span>
+                          @String.Format("{0:0,0}", product.PriceProduct * @Number)<span style=" text-decoration: underline">đ</span>
+                     </span></div>
+                 </div>
+                  <div style="display: flex;">                   
+                      <div class="setuplabel">Phí vận chuyển</div>
+                     <div style="color:black;margin-top:10px;"><span>
+                           @String.Format("{0:0,0}", @shipOutput.PriceShip)<span style=" text-decoration: underline">đ</span>
+                     </span></div>
+                 </div>
+
+               @*  <div style="display: flex;">                   
+                      <div class="setuplabel">Giảm ngay</div>
+                     <div style="color:black;margin-top:10px;"><span>1000</span><span style=" text-decoration: underline">đ</span></div>
+                 </div>*@
+
+                <div style="display: flex;">                   
+                    <div class="setuplabel">Tổng cộng</div>
+                    <div style="color:red;margin-top:10px;"><span>
+                      @String.Format("{0:0,0}", product.PriceProduct * @Number + @shipOutput.PriceShip)<span style=" text-decoration: underline">đ</span>
+                    </span></div>                 
+                </div>
+                <br>
+                    <Button OnClick="AddBuy" Style="width:100%;height:50px" Type="@ButtonType.Primary">ĐẶT HÀNG</Button>
+             </div>
+              <div class="row  background_center" style="margin-right: 0 !important;margin-left:0 !important">                                                             
+                              <div style="height: 39px;padding: 10px;border-bottom:3px solid #1890ff;"><b>DANH MỤC SẢN PHẨM LIÊN QUAN</b></div>
+                              @foreach (var item in productsrandom)
+                              {
+                                  <div class="col-2" style="margin-bottom: 10px;min-height: 235px">
+                                        <a style="text-decoration:none" href="productdetail/@item.Code">
+                                            <div class="divnhomsanpham">
+                                                 <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                <div style="margin-top:13px;">
+                                                     <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                     <div style="min-height:10px;"></div>
+                                                     <div>@item.Code</div>
+                                                      <div style="min-height:10px;"></div>
+                                                    <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                </div>
+                                             </div>                                               
+                                        </a>                                                                              
+                                  </div>
+                              }  
+      
+                <StoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                </StoreEcommerce.Pages.Pagination>                                      
+             </div>
+        </div>   
+        
+    </div>
+
+</body>
+</html>
+@code {
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 12;
+    private int totalPages = 1;
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (Allproductsrandom != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            productsrandom = productsrandom.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    [Parameter] public int Properties{get;set;} = 0;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Key{get;set;}= string.Empty;
+    [Parameter] public int Number{get;set;}= 0;
+    [Parameter] public string size{ get; set; } = string.Empty;
+    int CountProdcut = 0;
+    bool CheckMH1 = true;
+    bool Check = false;
+    int Text=0;
+    public int Tong;
+    public int Total;
+    public int Count;
+    string Name { get; set; } = string.Empty;
+    string Phone { get; set; } = string.Empty;
+    string Address { get; set; } = string.Empty;
+    string UserName { get; set; } = string.Empty;
+    //table
+    ITable table;
+    IEnumerable<Product> selectedRows1;
+    string selectionType = "checkbox";
+    const string noteKey = "note";
+    AccountOutput accountInput = new AccountOutput();
+    protected override async Task OnInitializedAsync()
+    {
+        accountInput = await localStore.GetItemAsync<AccountOutput>(noteKey);
+        if(accountInput != null)
+        {
+            Name = accountInput.FullName;
+            Phone = accountInput.Phone;
+            UserName = accountInput.UserName;
+        }
+        else
+        {
+
+        }       
+        await GetListCart();
+        await GetPrice();
+        await GetPriceShip();
+        await GetListRandom();
+        await GetListAdress();
+        await GetProvince();
+    }
+    Product product = new Product();
+    // Get List Random
+    List<Product> productsrandom = new List<Product>();
+    List<Product> Allproductsrandom = new List<Product>();
+    private async Task GetListRandom()
+    {   
+        var addItem = new LibraryStoreEcommerce.GetImg {Code=Key};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.GetImg>("api/Product/Random", addItem);
+        Allproductsrandom = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        if (Allproductsrandom != null)
+        {
+            totalPages = (int)Math.Ceiling(Allproductsrandom.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            productsrandom = Allproductsrandom.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Get Product BuyNow
+    List<Product> products = new List<Product>();
+    private async Task GetListCart()
+    {   
+        var addItem = new LibraryStoreEcommerce.BuyInput {Code=Key,Value=Value,Propeties=Properties,Size=size};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.BuyInput>("api/Cart/CartNow", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();    
+    }
+    public void RemoveSelection(string key)
+    {
+        var selected = selectedRows1.Where(x => x.NameProduct != key).ToList();
+        table.SetSelection(selected.Select(x => x.NameProduct).ToArray());
+    }
+    private async Task BuyProduct()
+    {
+        if(selectedRows1 != null)
+        {
+            CheckMH1 = false;
+            Check = true;
+            NavigationManager.NavigateTo("/Buy");
+
+        }
+        else
+        {
+            await _message.Error("Vui lòng chọn sản phẩm cần mua");
+        }
+
+    }
+    int radioValue = 1;
+    string style1 = "display: block;height:30px;line-height:30px";
+    //string radioValue = "A";
+    string style = "display: block;height:auto;line-height:30px";
+    bool visible = false;
+
+    void open()
+    {
+        this.visible = true;
+    }
+
+    void close()
+    {
+        this.visible = false;
+    }
+    //PriceShip
+    ShipOutput shipOutput = new ShipOutput();
+    private async Task GetPriceShip()
+    {   
+        var addItem = new ShipInput {ProvinceCode=accountInput.ProvinceCode,DistrictCode=accountInput.DistrictCode,ProductShip = product.Productship};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.ShipInput>("api/Ship/GetPricebyDistrictAndProvinceProductShip", addItem);
+        shipOutput = await response.Content.ReadFromJsonAsync<ShipOutput>(); 
+    }
+    private async Task GetPrice()
+    {   
+        var addItem = new GetNumberInput {Code = Key};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.GetNumberInput>("api/Product/GetPrice", addItem);
+        product = await response.Content.ReadFromJsonAsync<Product>(); 
+    }
+    private async Task Error()
+    {
+        await _message.Error("Đã có lỗi xảy ra vui lòng xem lại");
+    }
+    private async Task AddBuy()
+    {          
+        var addItem = new LibraryStoreEcommerce.Buy
+                { UserName = UserName,PriceShip = shipOutput.PriceShip, Address = @accountInput.Address, ProvinceCode = @accountInput.ProvinceCode, DistrictCode = @accountInput.DistrictCode, PayType = radioValue ,Code =Key,Propeties =Properties,Number=Number,Value=Value,Size=size};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Buy>("api/Buy/Insert", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            string key = $"updatable-{DateTime.Now.Ticks}";
+            var config = new MessageConfig()
+                {
+                    Content = "Loading...",
+                    Key = key
+                };
+            config.Content = "Đặt hàng thành công";
+            config.Duration = 3;
+            await _message.Success(config);               
+            await _message.Loading("Quay lại trang chủ");
+            await Task.Delay(600);
+            NavigationManager.NavigateTo("/");     
+        }
+        else
+        {
+            await _message.Error("Đặt hàng thất bại");
+        }      
+    }
+    List<Address> listaddress = new List<Address>();
+    public async Task GetProvince()
+    {       
+        listaddress = await Http.GetFromJsonAsync< List<Address>>($"api/Address/SelectProvince");
+    }
+    // Lấy ra quận,huyện theo thành phố
+    int result = 0;
+    List<Address> listdistrict = new List<Address>();
+    public async Task handleChange(ChangeEventArgs e)
+    {
+        result = Int32.Parse(e.Value.ToString());
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =result};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    int DistrictCode = 0;
+    public async Task handleChange1(ChangeEventArgs e)
+    {
+        DistrictCode = Int32.Parse(e.Value.ToString());
+    }
+    // Thêm địa chỉ phụ
+    AddressNewInput addressNewInput = new AddressNewInput();
+    public async Task InsertAdress()
+    {
+        var addItem = new LibraryStoreEcommerce.AddressNewInput {Account=UserName,ProvinceCode=result,DistrictCode=DistrictCode,Address=addressNewInput.Address};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressNewInput>("api/Address/InsertAdressNew", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            await _message.Success("Thêm địa chỉ thành công");
+            ID = 1;
+            await GetListAdress();
+        }
+        else
+        {
+            await _message.Error("Thêm địa chỉ thất bại");
+        }
+    }
+    // GetListAdress   
+    List<Address> listaddressnew = new List<Address>();
+    public async Task GetListAdress()
+    {
+        var addItem = new LibraryStoreEcommerce.AccountAddres {UserName=accountInput.UserName};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AccountAddres>("api/Address/GetListAddres", addItem);    
+        listaddressnew =  await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    int ID = 1;
+    // Khi click thay đổi địa chỉ
+    public async Task OkAdress()
+    {    
+        var addItem = new LibraryStoreEcommerce.AccountDelete {ID=ID};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AccountDelete>("api/Address/GetAddresbyID", addItem);  
+        accountInput = await response.Content.ReadFromJsonAsync<AccountOutput>();
+        ID = accountInput.ID;
+        await GetPriceShip();
+    }
+}

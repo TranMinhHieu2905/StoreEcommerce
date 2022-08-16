@@ -1,0 +1,42 @@
+﻿table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 5px;
+    text-align: center;
+    max-width: 1000px;
+    margin-left: 200px;
+    margin-right: 200px;
+}
+
+table {
+    max-width: 90%;
+    text-align: center;
+    margin: auto;
+    margin-top: 50px;
+}
+
+col-1 {
+    background-color: red;
+}
+
+.table-responsive {
+}
+
+.table table-hover {
+    max-width: 90%;
+}
+
+.fix_screen1 {
+    max-width: 1352px;
+    margin: auto;
+}
+.pagination{
+    float:right;
+}
+/*.table > :not(caption) > * > * 
+{
+    padding:0px;
+}*/

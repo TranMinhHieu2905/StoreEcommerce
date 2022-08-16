@@ -1,0 +1,440 @@
+﻿@page "/"
+@using AntDesign
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+<PageTitle>Index</PageTitle>
+<style>
+    .pagination
+    {
+        float:right;
+    }
+</style>
+ <p style="text-align:center;font-size:25px">THỐNG KÊ SỐ LIỆU CỬA HÀNG</p>
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10" style="padding: 50px 10px 10px 10px; background-color: beige;">
+                    <p><b>Thông kế tình trạng đơn hàng</b></p>
+                     <div class="table">
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                    <th scope="col">Tình trạng</th>
+                                    <th scope="col">Hôm nay</th>
+                                    <th scope="col">7 ngày trước</th>
+                                    <th scope="col">30 ngày trước</th>
+                                    <th scope="col">Tổng thời gian</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                <tr>
+                                    <th scope="row">Chưa duyệt</th>
+                                    <td>@getTotalOutput1.Total</td>
+                                    <td>@getTotalOutput2.Total</td>
+                                    <td>@getTotalOutput3.Total</td>             
+                                    <td>@getTotalOutput4.Total</td>
+                                </tr>  
+                                 <tr>
+                                    <th scope="row">Xác nhận đơn hàng</th>
+                                    <td>@getTotalOutput5.Total</td>
+                                    <td>@getTotalOutput6.Total</td>
+                                    <td>@getTotalOutput7.Total</td>             
+                                    <td>@getTotalOutput8.Total</td>
+                                </tr> 
+                                <tr>
+                                    <th scope="row">Đang giao hàng</th>
+                                    <td>@getTotalOutput9.Total</td>
+                                    <td>@getTotalOutput10.Total</td>
+                                    <td>@getTotalOutput11.Total</td>             
+                                    <td>@getTotalOutput12.Total</td>
+                                </tr> 
+                                <tr>
+                                    <th scope="row">Đã giao hàng</th>
+                                    <td>@getTotalOutput13.Total</td>
+                                    <td>@getTotalOutput14.Total</td>
+                                    <td>@getTotalOutput15.Total</td>             
+                                    <td>@getTotalOutput16.Total</td>
+                                </tr> 
+                                <tr>
+                                    <th scope="row">Hoàn tất đơn hàng</th>
+                                    <td>@getTotalOutput17.Total</td>
+                                    <td>@getTotalOutput18.Total</td>
+                                    <td>@getTotalOutput19.Total</td>             
+                                    <td>@getTotalOutput20.Total</td>
+                                </tr> 
+                                <tr>
+                                    <th scope="row">Đơn hàng đã hủy</th>
+                                    <td>@getTotalOutput21.Total</td>
+                                    <td>@getTotalOutput22.Total</td>
+                                    <td>@getTotalOutput23.Total</td>             
+                                    <td>@getTotalOutput24.Total</td>
+                                </tr> 
+                                <tr>
+                                    <th scope="row">Đơn hàng hoàn về</th>
+                                    <td>@getTotalOutput25.Total</td>
+                                    <td>@getTotalOutput26.Total</td>
+                                    <td>@getTotalOutput27.Total</td>             
+                                    <td>@getTotalOutput28.Total</td>
+                                </tr> 
+                            </tbody>
+                        </table>
+                    </div>
+                </div>               
+                <div class="col-1"></div>               
+            </div>
+
+
+            <div class="row">  
+                <div class="col-1"></div>
+
+                <div class="col-10" style="padding: 50px 10px 10px 10px; background-color: beige;">
+                     <p><b>Sản phẩm bán chạy</b></p>
+                     <div class="table">
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                    <th scope="col">Tên sản phẩm</th>
+                                    <th scope="col">Mã sản phẩm</th>
+                                    <th scope="col">Tổng số</th>
+                                    <th scope="col">Đơn giá</th>
+                                    <th scope="col">Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                @foreach (var item in statistical)
+                                {
+                                     <tr>
+                                        <th scope="row">@item.NameProduct</th>
+                                        <td>@item.Code</td>
+                                        <td>@item.Number</td>
+                                        <td> @String.Format("{0:0,0}",@item.Price)<span>đ</span></td>
+                                        <td> @String.Format("{0:0,0}",@item.ToTal)<span>đ</span></td>                 
+                                    </tr>    
+                                }
+                                            
+                            </tbody>
+                        </table>
+                    </div>
+                     <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                     </AdminStoreEcommerce.Pages.Pagination>
+                </div>               
+               
+                  <div class="col-1"></div>     
+                  
+            </div>
+            <div class="row">
+                 <div class="col-1"></div>     
+                <div class="col-5" style="padding: 50px 10px 10px 10px; background-color: beige;">
+                     <p><b>Khách hàng mua số lượng nhiều nhất</b></p>
+                     <div class="table">
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                    <th scope="col">Tên khách hàng</th>
+                                    <th scope="col">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                            @foreach (var item in getAccountTotals)
+                            {
+                                  <tr>
+                                    <th scope="row">@item.Account</th>
+                                    <td>@item.NumberBuy</td>                
+                                </tr>      
+                            }
+                                     
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  
+                 <div class="col-5" style="padding: 50px 10px 10px 10px; background-color: beige;">
+                     <p><b>Khách hàng mua nhiều tiền nhất</b></p>
+                     <div class="table">
+                        <table class="table table-hover" >
+                            <thead>
+                                <tr style="background-color:#FF9900">
+                                     <th scope="col">Tên khách hàng</th>
+                                    <th scope="col">Số lượng</th>
+                                     <th scope="col">Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                @foreach (var item in getAccountTotalMoneys)
+                                {
+                                      <tr>
+                                        <th scope="row">@item.Account</th>
+                                        <td>@item.NumberBuy</td>     
+                                        <td>@String.Format("{0:#,##0;(#,##0);0}",@item.Price)</td>      
+                                    </tr>      
+                                }               
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  
+                 <div class="col-1"></div>     
+            </div>
+         
+     </div>
+</div>
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAccoutTotalMoney();
+        await GetAccoutTotal();
+        await GetProdcutSelling();
+        await GetTotal1();
+        await GetTotal2();
+        await GetTotal3();
+        await GetTotal4();
+        await GetTotal5();
+        await GetTotal6();
+        await GetTotal7();
+        await GetTotal8();
+        await GetTotal9();
+        await GetTotal10();
+        await GetTotal11();
+        await GetTotal12();
+        await GetTotal13();
+        await GetTotal14();
+        await GetTotal15();
+        await GetTotal16();
+        await GetTotal17();
+        await GetTotal18();
+        await GetTotal19();
+        await GetTotal20();
+        await GetTotal21();
+        await GetTotal22();
+        await GetTotal23();
+        await GetTotal24();
+        await GetTotal25();
+        await GetTotal26();
+        await GetTotal27();
+        await GetTotal28();
+
+    }
+
+    //List<LibraryStoreEcommerce.Category> categories = new List<LibraryStoreEcommerce.Category>();
+    //private async Task GestListCategory()
+    //{   var addItem = new SearchInput {};
+    //    var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+    //    categories = await response.Content.ReadFromJsonAsync<List<LibraryStoreEcommerce.Category>>();  
+    //}
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 5;
+    private int totalPages = 1;  
+    // Phân trang
+    private void SelectedPage(int selectedPageIndex)
+    {
+        if (Allstatistical != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            statistical = Allstatistical.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    List<Statistical> Allstatistical = new List<Statistical>();
+    List<Statistical> statistical = new List<Statistical>();
+    public async Task GetProdcutSelling()
+    {       
+        Allstatistical = await Http.GetFromJsonAsync< List<Statistical>>($"api/Statistical/GetProductSelling");
+        if (Allstatistical != null)
+        { 
+            totalPages = (int)Math.Ceiling(Allstatistical.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            statistical = Allstatistical.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    GetTotalOutput getTotalOutput1 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput2 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput3 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput4 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput5 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput6 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput7 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput8 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput9 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput10 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput11 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput12 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput13 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput14 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput15 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput16 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput17 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput18 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput19 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput20 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput21 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput22 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput23 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput24 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput25 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput26 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput27 = new GetTotalOutput();
+    GetTotalOutput getTotalOutput28 = new GetTotalOutput();
+
+    // Đã đặt hàng
+    private async Task GetTotal1()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =1};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput1 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal2()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =1};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput2 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal3()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =1};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput3 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal4()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =1};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput4 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Xác nhận đã đặt hàng
+    private async Task GetTotal5()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =2};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput5 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal6()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =2};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput6 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal7()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =2};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput7 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal8()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =2};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput8 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Đang giao hàng
+    private async Task GetTotal9()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =3};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput9 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal10()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =3};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput10 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal11()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =3};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput11 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal12()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =3};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput12 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Đã giao hàng
+    private async Task GetTotal13()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput13 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal14()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput14 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal15()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput15 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal16()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput16 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Hoàn tất giao hàng
+    private async Task GetTotal17()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput17 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal18()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput18 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal19()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput19 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal20()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput20 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Đơn hàng đã hủy
+    private async Task GetTotal21()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput21 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal22()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput22 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal23()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput23 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal24()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput24 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // Đơn hàng trả về
+
+    private async Task GetTotal25()
+    {   var addItem = new GetTotalInput {Screen =1,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput25 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal26()
+    {   var addItem = new GetTotalInput {Screen =2,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput26 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal27()
+    {   var addItem = new GetTotalInput {Screen =3,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput27 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    private async Task GetTotal28()
+    {   var addItem = new GetTotalInput {Screen =4,IsBuy =4};
+        var response = await Http.PostAsJsonAsync<GetTotalInput>("api/Statistical/GetTotal", addItem);
+        getTotalOutput28 = await response.Content.ReadFromJsonAsync<GetTotalOutput>();  
+    }
+    // danh sách khách hàng mua số lượng nhiều nhất
+    List<GetAccountTotal> getAccountTotals = new List<GetAccountTotal>();
+    private async Task GetAccoutTotal()
+    {
+        getAccountTotals = await Http.GetFromJsonAsync< List<GetAccountTotal>>($"api/Statistical/GetAccounTotal");
+    }
+    List<GetAccountTotal> getAccountTotalMoneys = new List<GetAccountTotal>();
+    private async Task GetAccoutTotalMoney()
+    {
+        getAccountTotalMoneys = await Http.GetFromJsonAsync< List<GetAccountTotal>>($"api/Statistical/GetAccounTotalMoney");
+    }
+}

@@ -1,0 +1,398 @@
+﻿@page "/adminsupplier"
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@inject NavigationManager NavigationManager
+
+<head>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+   <link href="css/admin.css" rel="stylesheet" />
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><i class="fa fa-shopping-basket" aria-hidden="true"></i>Quản Lý Nhà Cung Cấp</span>
+    </div>
+     <div class="col-2">
+       
+    </div>
+      <div class="col-3">
+       
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-3">
+
+    </div>
+    <div class="col-4">
+  
+        <div include="form-input-input()">
+            <input @bind-value="searchInput.TextSearch" placeholder="Tìm kiếm sản phẩm" style=" border-radius: 8px;"> 
+        </div>       
+    </div>
+    <div class="col-3">
+         <button @onclick="GetSystemKeySupplier" style="margin-top: 4px;" class="btn btn-success m-r-5">Tìm kiếm</button> <button style="margin-top: 4px" class="btn btn-success m-r-5" @onclick="DeleTeFilter">Xoá bộ lọc</button>
+    </div>
+</div>
+
+<body>
+     
+  <div style="background: aliceblue;margin-top:20px;">
+        <div class="fix_screen1">
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-10"> 
+               
+                 <table class="table table-hover" >                 
+             <thead>
+                 <tr style="background-color:#FF9900">
+                <th scope="col">STT</th>
+                <th scope="col">NHÀ CUNG CẤP</th>
+                <th scope="col">ĐỊA CHỈ</th>
+                <th scope="col">QUẬN,HUYỆN</th>
+                <th scope="col">THÀNH PHỐ</th>
+                <th scope="col">HÀNH ĐỘNG</th>
+
+            </tr>
+            </thead>
+                    <tbody>
+                        @foreach (var item in systemKeySupplier)
+                        {
+                        <tr>
+                            <th scope="row">@item.STT</th>
+                            @if(@item.Edit)
+                            {
+                                <td>
+                                     <input @bind-value="item.NameSupplier" style=" border-radius: 8px;" type="text" id="fname" name="fname" />
+                                </td>
+                                
+                            }
+                            else
+                            {
+                                 <td>@item.NameSupplier</td>
+                            }
+                            @if(@item.Edit)
+                            {
+                                 <td>
+                                     <input @bind-value="item.Address" style=" border-radius: 8px;" type="text" id="fname" name="fname" />
+                                </td>
+                            }
+                             else
+                            {
+                                <td>@item.Address</td>
+                            }
+                            @if(@item.Edit)
+                            {
+                                <td>                                                              
+                                  <select value="@item.ProvinceCode" style="border-radius:8px;" @onchange="handleChange">
+                                      <option hidden value="">Chọn thành phố</option>
+                                      @foreach (var address in listaddress)
+                                        {
+                                             <option value="@address.ProvinceCode">@address.AddressName</option>
+                                        }
+                                 </select>                              
+                              </td>
+                            }
+                            else
+                            {
+                                 <td>@item.ProvinceName</td>
+                            }
+                             @if(@item.Edit)
+                            {
+                                <td>                                                              
+                                  <select value="@item.DistrictCode" style="border-radius:8px;" @onchange="handleChangeDistrictCode">
+                                      <option hidden value="">Chọn thành phố</option>
+                                      @foreach (var address in listdistrict)
+                                        {
+                                             <option value="@address.ProvinceCode">@address.AddressName</option>
+                                        }
+                                 </select>                              
+                              </td>
+                            }
+                            else
+                            {
+                                 <td>@item.DistrictName</td>
+                            }
+                           <td>
+                                 <button @onclick="@(()=>{ _visible1 = true;})" class="btn btn-warning">Thêm</button>                  
+                                  @if(@item.Edit)
+	                            {
+	                              <span> &ensp;</span><button @onclick="()=>UpdateSupllier(item)" class="btn btn-primary m-r-5">OK</button>               
+	                            }
+	                            else
+	                            {
+		                              <span> &ensp;</span><button class="btn btn-primary m-r-5" @onclick="()=>ChangeBorder(item,systemKeySupplier,item.ProvinceCode)">Sửa</button>  
+	                            }
+                               &ensp;<button class="btn btn-danger m-r-5"  @onclick="@(()=>{ _visible = true;ID=item.ID;Name =item.NameSupplier; })">Xóa</button>                 
+                          </td>                                                    
+                        </tr>              
+                        }        
+                    </tbody>
+                </table> 
+                </div>                     
+                 <div class="col-1"></div>    
+                  <AdminStoreEcommerce.Pages.Pagination TotalPages="@(totalPages != 0 ? totalPages : 1)"
+                        PageIndex="@PageIndex"
+                        Radius=3
+                        OnSelectedPage="@SelectedPage">
+                </AdminStoreEcommerce.Pages.Pagination>
+            </div>
+           
+        </div>
+</div>
+   @{RenderFragment 
+    footer =@<Template>
+         <button  @onclick="@(async ()=>await DeleteSupplier(@ID))" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+    <p>Bạn có muốn xoá <b>@Name</b> không ?</p>    
+</Modal> 
+   @{RenderFragment 
+    footer1 =@<Template>
+       
+    </Template>;
+}  
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1">
+         <EditForm Model="supplierInput" OnSubmit="@SubmitEventHandler">
+                       <DataAnnotationsValidator />  
+         <div style="color:#757575;">Tên nhà cung cấp</div>
+        <div include="form-input-input()">
+            <Input @bind-Value="supplierInput.SupplierName" placeholder="Nhập họ tên nhà cung cấp" style=" border-radius: 8px;"> </Input>
+        </div>   
+        <label><ValidationMessage For="() => supplierInput.SupplierName" /></label>
+         <div style="color:#757575;">Địa chỉ</div>
+         <div include="form-input-input()">
+            <Input @bind-Value="supplierInput.AddressName" placeholder="Nhập địa chỉ" style=" border-radius: 8px;"></Input>
+        </div>   
+        <label><ValidationMessage For="() => supplierInput.SupplierName" /></label>
+         <div style="color:#757575;">Thành phố</div>
+           <div style="background-color:white;" include="form-input-select()">
+          <select style="border-radius:8px;" @onchange="handleChange">
+                <option hidden value="">Chọn thành phố</option>
+                @foreach (var address in listaddress)
+                {
+                        <option value="@address.ProvinceCode">@address.AddressName</option>
+                }
+           </select>  
+           </div>
+            <div style="color:#757575;">Quận, huyện</div>
+            <div style="background-color:white;" include="form-input-select()">
+            <select style="border-radius:8px;" @onchange="handleChangeDistrictCode">
+                <option hidden value="">Chọn quận,huyện</option>
+                @foreach (var address in listdistrict)
+                {
+                        <option value="@address.ProvinceCode">@address.AddressName</option>
+                }
+            </select>  
+         </div>
+           <button  @onclick="CheckInsert" class="btn btn-danger m-r-5">Thêm mới</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+         </EditForm>       
+</Modal> 
+</body>
+@code {
+    int ID = 0;
+    //Sửa thành phố của Supplier
+    List<Address> listaddress = new List<Address>();
+    public async Task GetProvince()
+    {       
+        listaddress = await Http.GetFromJsonAsync< List<Address>>($"api/Address/SelectProvince");
+    }
+    // Lấy cả quận, huyện
+    List<Address> listdistrict = new List<Address>();
+    public async Task GetDistrictbyProvince()
+    {  
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID=DistrictCode};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    // Lấy ra quận huyện theo tỉnh khi sửa
+    int result = 0;
+    public async Task handleChange(ChangeEventArgs e)
+    {
+        result = Int32.Parse(e.Value.ToString());
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID=result};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    // Lấy ra mã huyện để Update
+    public async Task handleChangeDistrictCode(ChangeEventArgs e)
+    {
+        DistrictCode = Int32.Parse(e.Value.ToString());
+    }
+    public string Name { get; set; } = string.Empty;
+    public Guid ObjectGuid { get; set; } = Guid.Empty;
+    //Load dữ liệu khi vào màn hình
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSystemKeySupplier();
+        await GetProvince();
+    }
+    SearchInput searchInput = new SearchInput();
+    public int PageIndex { get; set; } = 1;
+    private int pageIndex = 1;
+    private int itemsPerPage = 6;
+    private int totalPages = 1;   
+    string title = "Xác nhận xoá nhà cung cấp";
+    bool _visible = false;
+    string title1 = "Thêm nhà cung cấp";
+    bool _visible1 = false;   
+    // Xoá bộ lọc
+    public async Task DeleTeFilter()
+    {
+        searchInput.TextSearch = string.Empty;
+        await GetSystemKeySupplier();
+    }
+    // Phân trang
+    private void SelectedPage(int selectedPageIndex)
+    {
+
+        if (AllsystemKeySupplier != null)
+        {
+            PageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            systemKeySupplier = AllsystemKeySupplier.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1= false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1= false;
+    }  
+    // Get List Nhà cung cấp
+    List<Supplier> AllsystemKeySupplier = new  List<Supplier>();
+    List<Supplier> systemKeySupplier = new  List<Supplier>();
+    Supplier Supplier = new  Supplier();
+    public async Task GetSystemKeySupplier()
+    {
+        var addItem = new LibraryStoreEcommerce.Address_SearchInput {TextSearch=searchInput.TextSearch};
+        var response = await Http.PostAsJsonAsync<Address_SearchInput>("api/Supplier/Supplier", addItem);
+        AllsystemKeySupplier = await response.Content.ReadFromJsonAsync<List<Supplier>>();  
+        if (AllsystemKeySupplier != null)
+        { 
+            totalPages = (int)Math.Ceiling(AllsystemKeySupplier.Count() / (double)itemsPerPage);
+            var skipCount = itemsPerPage * (PageIndex - 1);
+            systemKeySupplier = AllsystemKeySupplier.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    // Edit
+    public int DistrictCode { get; set; } = 0;
+    public async Task ChangeBorder(Supplier supplier,List<Supplier> suppliers,int District)
+    {
+        foreach (var item in suppliers)
+        {
+            item.Edit = false;
+        }
+        supplier.Edit=true;
+        DistrictCode = District;
+        await GetDistrictbyProvince();
+    }
+    // update
+    public async Task UpdateSupllier(Supplier supplier)
+    {
+        SupplierInput addItem = new SupplierInput();
+        if(result!=0)
+        {
+               addItem = new LibraryStoreEcommerce.SupplierInput {ID =supplier.ID,SupplierName =supplier.NameSupplier,AddressName=supplier.Address,ProvinceCode = result,DistrictCode=DistrictCode};
+        }
+        else
+        {
+              addItem = new LibraryStoreEcommerce.SupplierInput {ID =supplier.ID,SupplierName =supplier.NameSupplier,AddressName=supplier.Address,ProvinceCode = supplier.ProvinceCode,DistrictCode=supplier.DistrictCode};
+        }
+        if(supplier.ID == 0 || supplier.NameSupplier == "" || supplier .Address == "")
+        {
+            await _message.Error("Đã có lỗi xảy ra, vui lòng thử lại");    
+        }
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.SupplierInput>("api/Supplier/Update", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            supplier.Edit=false;
+            await GetSystemKeySupplier();
+            await _message.Success("Sửa sản phẩm thành công");
+        }
+        else
+        {
+            await _message.Error("Sửa sản phẩm thất bại");    
+        }      
+    }
+    //Delete Supplier
+    public async Task DeleteSupplier(int ID)
+    {  
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID=ID};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Supplier/Delete", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await _message.Success("Xoá sản phẩm thành công");
+            await GetSystemKeySupplier();
+        }
+        else
+        {
+            await _message.Error("Xoá sản phẩm thất bại");    
+        }      
+    }
+    //Add Supplier
+    private void SubmitEventHandler(EditContext context)
+    {
+        if (context.Validate())
+        {
+
+        }
+        else
+        {
+        }
+    }
+    private SupplierInput supplierInput = new SupplierInput();
+    public async Task CheckInsert()
+    {
+        if(supplierInput.SupplierName == string.Empty || supplierInput.AddressName== string.Empty )
+        {
+
+        }
+        else
+        {
+            await InsertSupllier();
+        }
+        
+    }
+    public async Task InsertSupllier()
+    {  
+         var addItem = new LibraryStoreEcommerce.SupplierInput {SupplierName =supplierInput.SupplierName,AddressName=supplierInput.AddressName,ProvinceCode = result,DistrictCode=DistrictCode};
+          var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.SupplierInput>("api/Supplier/Insert", addItem);
+          if (response.IsSuccessStatusCode)
+            {
+                _visible1= false;
+                await _message.Success("Thêm sản phẩm thành công");
+                await GetSystemKeySupplier();
+            }
+            else
+            {
+                await _message.Error("Xoá sản phẩm thất bại");    
+            } 
+    }
+    
+    
+}

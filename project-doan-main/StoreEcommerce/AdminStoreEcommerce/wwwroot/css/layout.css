@@ -1,0 +1,171 @@
+﻿@import url('file:///F:\project-doan\StoreEcommerce\StoreEcommerce\wwwroot\css\app.css');
+
+.background_layout {
+   /* background-color: #FA5030;*/
+    height: 130px;
+}
+
+.color_icon {
+    color: white;
+    margin-top: 43px;
+}
+
+.btndangnhapem {
+    background-color: #d44332;
+    color: white;
+    width: 100%;
+    height:63px;
+}
+
+.btndangnhapfb {
+    background-color: #4c68a1;
+    color: white;
+    width: 100%;
+}
+
+.icon_giohang {
+    text-align: center;
+    margin-top: 4%;
+    font-size: 120%;
+}
+
+.icon {
+    margin-top: 2%;
+    font-size: 120%;
+    text-align: center;
+}
+
+.color-text {
+    color: white;
+}
+
+.col-6 {
+    padding: 2%;
+}
+
+.text_edit {
+    margin-left: 7%;
+}
+
+ul {
+    list-style-type: none;
+    font-weight: bold;
+}
+
+.footer {
+    background-color: #ececec;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    margin-top: 50px;
+}
+
+.footer_ketnoi {
+    background-color: #bebebe;
+    display: block;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 25px;
+}
+
+    .footer_ketnoi:hover {
+        background-color: deepskyblue;
+        color: black;
+    }
+
+.txttimkiem {
+    background-color: white;
+    border: 0;
+    border-radius: 5px;
+    padding: 10px;
+    width: 86%;
+}
+
+.divtimkiem {
+    background-color: white;
+    border-radius: 5px;
+    color: black;
+    width: 90%;
+}
+
+.btntimkiem {
+    background-color: rgb(255, 84, 31);
+    color: white;
+    border: 0;
+    border-radius: 3px;
+    padding: 5px;
+    width: 12%;
+}
+
+.divtimkiem input.btntimkiem:hover {
+    background-color: #bebebe
+}
+
+.fix_screen {
+    max-width: 1352px;
+    margin: auto;
+}
+.setposition {
+    width: 100%;
+    height: 50%;
+}
+.set_img{
+    width:100%;
+    height:100%;
+}
+.img_icon{
+    text-align:center;
+}
+.anyClass {
+    overflow-y: auto;
+    height: 389px;
+    padding: 0px 5px 0px 5px;
+}
+.background_center {
+    background: white;
+}
+.divnhomsanpham {
+    background-color: white;
+    border: 1px solid #DADADA;
+    /*border-right: 1px solid #DADADA;*/
+
+    width: 100%;
+    height: 250px;
+    text-align: center;
+    padding: 10px;
+    text-decoration: none;
+}
+    .divnhomsanpham:hover {
+        border: 2px solid rgb(13 157 87 / 50%);
+    }
+.edit_row {
+    padding-left: 0;
+    padding-right: 0;
+}
+.row {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.boder-product{
+    color:black
+}
+.selectitem {
+    color: black;
+    font-size: 20px;
+}
+/*a:hover {
+    color:black;
+    background-color: antiquewhite;
+    height: 50px;
+}*/
+.layout_header {
+    background-color: #FA5030;
+    padding-left: 90px;
+    padding-right: 90px;
+    text-align:center;
+}

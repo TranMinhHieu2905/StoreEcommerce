@@ -1,0 +1,238 @@
+﻿@page "/detailproduct/{CurrentPage:int}"
+@page "/detail"
+@inject NavigationManager NavigationManager
+@using AntDesign
+@using LibraryStoreEcommerce
+@inject HttpClient Http
+<head>
+</head>
+<div style="background: aliceblue;">
+      <div class="fix_screen">
+          <div class="row">
+              <div class="col-1"></div>
+              <div class="col-10">
+                  <div class="row">
+                        <div class="col-3">                              
+                                <div>
+                                    <Menu Style=" width: 256px ;"
+                                          SelectedKeys=@(new[]{"1"})
+                                     
+                                          Mode=this.mode
+                                          Theme=this.theme>
+                                                <SubMenu Key="sub1" TitleTemplate=@sub1Title>
+                                                    @foreach (var item in categories)
+                                                    {
+                                                    <a href="detailproduct/@item.ID">
+                                                        <MenuItem Style="color:black" OnClick="@(async () => await GetListCategory(@item.ID))">@item.NameCategory</MenuItem>
+                                                    </a>  
+                                                    }
+                                        
+                                                <MenuItem Key="4">Option 4</MenuItem>
+                                                </SubMenu>
+                                    </Menu>
+                               </div>  
+                               <br />
+                                <Menu Style=" width: 256px ;"                                                                         
+                                          Mode=this.mode
+                                          Theme=this.theme>
+                                        <SubMenu Key="sub2" TitleTemplate=@sub2Title>
+                                        <MenuItem OnClick="GestListProductMoneyUp">Từ thấp đến cao</MenuItem>  
+                                        <MenuItem OnClick="GestListProductMoneyDown" >Từ cao đến thấp</MenuItem>
+                                        </SubMenu>
+                               </Menu>
+                               <br />
+                               <span class="fa fa-filter"> BỘ LỌC TÌM KIẾM</span> 
+                               <hr />                         
+                                <div> 
+                                        <div> KHOẢNG GIÁ :</div><br />
+                                         <Row>   
+                                            <AntDesign.InputNumber Min="0" Max="100000000" Step="10000" Style="margin:0 11px" @bind-Value="@inputValue1" TValue="double" />    -
+                                            <AntDesign.InputNumber Min="0" Max="100000000" Step="10000" Style="margin:0 11px" @bind-Value="@inputValue2" TValue="double" />                                  
+                                         </Row>
+                                         <br />
+                                        <Row>                                 
+                                            <Col Span="12">
+                                               Khoảng giá từ : <Slider TValue="double" Min="0" Max="100000000" Step="10000" Style="width:243px" @bind-Value="@inputValue1" />
+                                               Khoảng giá đến : <Slider TValue="double" Min="0" Max="100000000" Step="10000" Style="width:243px" @bind-Value="@inputValue2" />
+                                            </Col>                                                                                                        
+                                        </Row>                               
+                                </div><br />
+                                <Button Style="width: 250px;" Type="@ButtonType.Primary" OnClick="GestListProduct" > ÁP DỤNG </Button><br /><br />
+                                <Button Style="width: 250px;" Danger Type="@ButtonType.Primary" OnClick="DeleteFilter" > XOÁ BỘ LỌC </Button>
+
+                        </div>
+                        
+                        <div class="col-9">                           
+                             <Tabs @bind-ActiveKey="@activeKey" OnChange="OnTabChange" Animated>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+	                          <TabPane Tab="PHỔ BIẾN" Key="1">
+                                        @foreach (var item in products)
+                                        {
+                                            <div class="col-3" style="margin-bottom: 10px;display: inline-block;padding: 0px 5px;">
+                                                <a href="/productdetail/@item.Code">
+                                                    <div class="divnhomsanpham">
+                                                            <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                                 <div style="margin-top:13px;">
+                                                                     <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                                     <div style="min-height:10px;"></div>
+                                                                     <div>@item.Code</div>
+                                                                      <div style="min-height:10px;"></div>
+                                                                     <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                                </div>
+                                                     </div>                                              
+                                                </a>                                                                              
+                                            </div>
+                                        }                             
+                             </TabPane>                          
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                              <TabPane>
+                             </TabPane>
+                              <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                            <TabPane Tab="MỚI NHẤT" Key="2">
+                                  @foreach (var item in products)
+                                        {
+                                            <div class="col-3" style="margin-bottom: 10px;display: inline-block;padding: 0px 5px;">
+                                                <a href="/productdetail/@item.Code">
+                                                    <div class="divnhomsanpham">
+                                                            <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                                 <div style="margin-top:13px;">
+                                                                     <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                                     <div style="min-height:10px;"></div>
+                                                                     <div>@item.Code</div>
+                                                                      <div style="min-height:10px;"></div>
+                                                                     <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                                </div>
+                                                     </div>                                              
+                                                </a>                                                                              
+                                            </div>
+                                        }   
+                            </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                            <TabPane Tab="YÊU THÍCH" Key="3">
+                                  @foreach (var item in products)
+                                        {
+                                            <div class="col-3" style="margin-bottom: 10px;display: inline-block;padding: 0px 5px;">
+                                                <a href="/productdetail/@item.Code">
+                                                    <div class="divnhomsanpham">
+                                                            <img src="@item.PictureLink" style="width: 100%;"  />                                                                                                                                    
+                                                                 <div style="margin-top:13px;">
+                                                                     <div style="min-height:30px;max-height:30px">@item.NameProduct</div>    
+                                                                     <div style="min-height:10px;"></div>
+                                                                     <div>@item.Code</div>
+                                                                      <div style="min-height:10px;"></div>
+                                                                     <span> @item.Price</span> &ensp;&ensp;&ensp;&ensp;<span><AntDesign.Icon Type="like" Theme="outline"/>@item.Likes</span>
+                                                                </div>
+                                                     </div>                                              
+                                                </a>                                                                              
+                                            </div>
+                                        } 
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>
+                             <TabPane>
+                             </TabPane>                                                        
+                        </Tabs>                      
+                            <br />                                                       
+                        </div>
+                  </div>
+              </div>
+          </div>
+          
+      </div>
+</div>
+@code {
+    [Parameter]
+    public int CurrentPage { get; set; }=1;
+    private double inputValue1 = 0;
+
+    private double inputValue2 = 0;
+
+    RenderFragment sub1Title =
+        @<span>
+            <Icon Type="appstore" Theme="outline"></Icon>
+            DANH MỤC SẢN PHẨM
+    </span>
+    ;    
+    MenuMode mode = MenuMode.Inline;
+    MenuTheme theme = MenuTheme.Light;  
+      RenderFragment sub2Title =
+        @<span>
+            <Icon Type="appstore" Theme="outline"></Icon>
+           Giá
+    </span>
+    ;     
+    //Tab
+    string activeKey { get; set; } = "1";
+
+    protected async Task OnTabChange(string key)
+    {
+        int id = Int32.Parse(key);
+        var addItem = new ProductDetail {ID=@CurrentPage,Screen=id,MoneyDown=@inputValue1,MoneyUp=@inputValue2};
+        var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+        Console.WriteLine($"tab change:{key}");
+    }
+    private async Task DeleteFilter()
+    {
+        inputValue1=0;
+        inputValue2 = 0;
+        await GestListProduct();
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await GestListCategory();
+        await GestListProduct();
+    }
+    //Screen = 1 Product phổ biến, Screen = 2 Product Mới Nhất, Screen = 3 Product Yeu thich
+    List<Product> products = new List<Product>();
+    private async Task GestListProduct()
+    {   var addItem = new ProductDetail {ID=@CurrentPage,Screen=1,MoneyDown=@inputValue1,MoneyUp=@inputValue2};
+        var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    private async Task GestListProductMoneyUp()
+    {   var addItem = new ProductDetail {ID=@CurrentPage,Screen=5};
+        var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    private async Task GestListProductMoneyDown()
+    {   var addItem = new ProductDetail {ID=@CurrentPage,Screen=4};
+        var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+    List<Category> categories = new List<Category>();
+    private async Task GestListCategory()
+    {   var addItem = new SearchInput {};
+        var response = await Http.PostAsJsonAsync<SearchInput>("api/Category/GetList", addItem);
+        categories = await response.Content.ReadFromJsonAsync<List<Category>>();  
+    }
+    public async Task GetListCategory(int id)
+    {
+        var addItem = new ProductDetail {ID=id,Screen=1};
+        var response = await Http.PostAsJsonAsync<ProductDetail>("api/Category/GetListProductbyID", addItem);
+        products = await response.Content.ReadFromJsonAsync<List<Product>>();  
+    }
+}

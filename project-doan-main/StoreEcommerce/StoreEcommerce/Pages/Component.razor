@@ -1,0 +1,14 @@
+﻿@page "/qe"
+@using AntDesign
+<button onclick="@ToggleLike" 
+        class="btn @( liked == true ? "btn-primary" : "btn-secondary" )">
+    <Icon Type="like" Theme="outline"/>
+</button>
+@functions {
+    bool liked = false;
+
+    async Task ToggleLike()
+    {
+        liked = !liked;
+    }
+}

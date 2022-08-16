@@ -1,0 +1,437 @@
+﻿@page "/account"
+@using AntDesign
+@using LibraryStoreEcommerce
+@inject NavigationManager NavigationManager
+@inject MessageService _message
+@inject HttpClient Http
+@using Syncfusion.XlsIO;
+@using Syncfusion.Drawing;
+@using System.IO;
+@inject Microsoft.JSInterop.IJSRuntime JS
+@using System.Data;
+@using Blazored.LocalStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+    <div style="background: azure;">
+        <div class="fix_screen">
+           
+            <div class="row">  
+                <div class="col-1"></div>
+                <div class="col-3">
+                    <div><img style="width: 94px;height: 85px;clip-path: circle(31px at 50% 54%);" src="/img_icon/iconuser.jpg" />
+                        <span><b>@accountOuput.UserName</b></span> 
+                        <hr>                       
+                    </div>
+                    <Menu DefaultSelectedKeys=@(new[] { "1" })
+		              DefaultOpenKeys=@(new[] { "sub1" })
+		              Mode=MenuMode.Inline
+		              Theme=MenuTheme.Dark
+		              InlineCollapsed=collapsed>
+		            <SubMenu Key="sub1" TitleTemplate=@sub1Title>
+			            <MenuItem OnClick="Profile" Key="1">Hồ sơ</MenuItem>
+			            <MenuItem Key="2">Ngân hàng</MenuItem>
+			            <MenuItem  OnClick="OrderProduct" Key="3">Đơn mua</MenuItem>
+			            <MenuItem  OnClick="Password" Key="4">Đổi mật khẩu</MenuItem>
+		            </SubMenu>
+	            </Menu>
+                </div>
+               
+                @if(ShowDetail ==3)
+                {
+                     <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;padding:20px">
+                         <h3 style="text-align:center;color:white;">Đơn hàng bạn đã đặt</h3>
+                        <Table @ref="table" DataSource="@buyOutputs" @bind-SelectedRows="selectedRows1" @bind-PageIndex="_pageIndex" @bind-PageSize="_pageSize">
+                            <Column Title="STT" @bind-Field="@context.STT" >                                              
+                            </Column>
+                            <Column Title="Hình ảnh" TData="string">
+                                <img style="width:100px;" src="@context.PictureLink" />                               
+                            </Column>
+                            <Column Title="Sản phẩm" TData="string">   
+                                 <div style="font-size:20px">@context.NameProduct</div>
+                                <div><span style="color:#757575;">Màu: @context.Value</span></div>
+                                  <div><span style="color:#757575;">Size: @context.Size</span></div>
+                            </Column>
+                            <Column Title="Đơn giá" TData="string">
+                                <span>@String.Format("{0:0,0}", @context.Price)<span>đ</span></span>
+                                </Column>
+                            <Column Style="text-align:center;" Title="Số lượng" @bind-Field="@context.Number">                             
+                            </Column>
+                            <Column Title="Tổng Cộng" TData="string">
+                                @{                          
+                                        Tong = @context.Number * @context.Price;
+                                        <span>@String.Format("{0:0,0}", Tong)<span>đ</span></span>
+                                    }                                       
+                            </Column>  
+                            <Column Format="dd/MM/yyyy" Title="Ngày đặt hàng" @bind-Field="@context.Date" >    
+                            </Column>                            
+                        </Table>
+                        <button class="btn btn-primary" @onclick="@XuatExcel">Xuất hoá đơn</button>
+                        </div>
+                }                               
+                @if(ShowDetail==1)
+                {
+                    <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;">
+                    <div style="font-size: 22px;padding: 18px;">Hồ sơ của tôi</div>
+                     <div>Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+                     <hr>
+                    <label>Tên đăng nhập: @account.UserName</label>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Họ và tên</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.FullName" style=" border-radius: 8px;" type="text" placeholder="Nhập họ và tên"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Email</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Email"  style=" border-radius: 8px;" type="text" placeholder="Nhập email"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Số Điện Thoại</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Phone" style=" border-radius: 8px;" type="text" placeholder="Nhập số điện thoại"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Giới Tính</div>
+                    <div style="color:black">                             
+                        <div>
+                            <RadioGroup @bind-Value="accountOuput.Sex" >
+                                <Radio Style="color:white" Value="0">Nam</Radio>
+                                <Radio Style="color:white" Value="1">Nữ</Radio>
+                                <Radio Style="color:white" Value="2">Khác</Radio>
+                            </RadioGroup>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Ngày sinh</div>
+                    <div style="color:black">                             
+                        <DatePicker @bind-Value="accountOuput.Day" Format="dd/MM/yyyy" />
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Địa chỉ</div>
+                    <div style="color:black">                             
+                        <div include="form-input-input()">
+                            <input @bind-value="accountOuput.Address" style=" border-radius: 8px;" type="text" placeholder="Nhập địa chỉ"><br>
+                        </div>
+                        @* <ValidationMessage For="@(() => accountInput.UserName)" /><br>*@
+                    </div>
+                    <div class="row">
+                         <div class="col-3">
+                             <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Thành phố</span>                          
+                                <div style="background-color:white;" include="form-input-select()">
+                                  <select value="@accountOuput.ProvinceCode" style="border-radius:8px;" @onchange="handleChange">
+                                      <option hidden value="">Chọn thành phố</option>
+                                      @foreach (var item in listaddress)
+                                        {
+                                             <option value="@item.ProvinceCode">@item.AddressName</option>
+                                        }
+                                 </select>
+                              </div>
+                         </div> 
+                        <div class="col-3">
+                            <span style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Tỉnh</span>
+                            <div style="background-color:white;" include="form-input-select()">
+                                <select value="@accountOuput.DistrictCode" style="border-radius:8px;" @onchange="handleChangeDistrictCode">
+                                    <option hidden value="">Chọn quận,huyện</option>
+                                    @foreach (var item in listdistrict)
+                                    {
+                                            <option value="@item.ProvinceCode">@item.AddressName</option>
+                                    }
+                                </select>
+                          </div>
+                        </div>                                                                     
+                    </div>
+                    <br />
+                    <div style="float:right;margin-bottom:10px;">
+                        <Button OnClick="@(async () => await Update())" Type="@ButtonType.Primary">Lưu</Button>
+                        <Button OnClick="@(async () => Out())" Danger Type="@ButtonType.Primary">Thoát</Button>
+                    </div>
+                  
+                </div>
+                }
+                @if(ShowDetail==4)
+                {
+                    <div class="col-7" style="background-color:#001529;color:white;font-weight: bold;">
+                    <div style="font-size: 22px;padding: 18px;">Đổi mật khẩu</div>
+                     <div>Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+                     <hr>
+                       <EditForm Model="@account" OnValidSubmit="OnValidSubmit">
+                        <DataAnnotationsValidator />
+                    <label>Tên đăng nhập: @account.UserName</label>
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Tài khoản</div>
+                    <div style="color:black">     
+                      <div include="form-input-input()">
+                        <input readonly @bind="account.UserName" style=" border-radius: 8px;" type="text" placeholder="Nhập tài khoản"/><br>
+                    </div>
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Mật khẩu</div>
+                    <div style="color:black">     
+                    <div include="form-input-input()">
+                        <input @bind="account.CheckPassword" placeholder="Nhập mật khẩu" style=" border-radius: 8px;" type="@TxtType" id="fname" name="fname"/><i @onclick="ShowPassword" style="position:absolute;margin-left:-30px;margin-top:14px" class="@type"></i>
+                    </div>
+                    </div>
+                    <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Nhập mật khẩu mới</div>
+                     <div style="color:black">     
+                    <div include="form-input-input()">
+                        <input @bind="account.PasswordNew" placeholder="Nhập mật khẩu mới" style=" border-radius: 8px;" type="@TxtType" id="fname" name="fname"/><i @onclick="ShowPassword" style="position:absolute;margin-left:-30px;margin-top:14px" class="@type"></i>
+                    </div>
+                    </div>
+                     <div style="color:#757575;margin-top:10px;display: flex;padding: 10px 20px;">Nhập lại mật khẩu mới</div>
+                     <div style="color:black">     
+                    <div include="form-input-input()">
+                        <input @bind="account.PasswordReNew" placeholder="Nhập lại mật khẩu mới" style=" border-radius: 8px;" type="@TxtType" id="fname" name="fname"/><i @onclick="ShowPassword" style="position:absolute;margin-left:-30px;margin-top:14px" class="@type"></i>
+                    </div>
+                    </div>
+
+                    <br />
+                    <div style="float:right;margin-bottom:10px;">
+                        <Button OnClick="@(async () => await CheckUpdate())" Type="@ButtonType.Primary">Lưu</Button>
+                        <Button OnClick="@(async () => Out())" Danger Type="@ButtonType.Primary">Thoát</Button>
+                    </div>
+                   </EditForm>
+                </div>
+                }
+                
+                <div class="col-1"></div>               
+           </div>      
+    </div>
+    </div>
+@code
+{
+    //Validate ChangePassword
+    private async void OnValidSubmit(EditContext context)
+    {
+        if (context.Validate())
+        {
+
+        }
+        else
+        {
+
+        }
+    }
+    //
+    public async Task CheckUpdate()
+    {
+        if(account.PasswordNew ==string.Empty || account.CheckPassword== string.Empty || account.PasswordReNew==string.Empty )
+        {
+
+        }
+        else if(account.PasswordNew != account.PasswordReNew )
+        {
+             await _message.Error("Hai mật khẩu không trùng nhau, hãy nhập lại");
+        }
+        else
+        {
+            await UpdatePassword();
+        }
+    }
+    //Update pass
+    public async Task UpdatePassword()
+    {
+        var addItem = new LibraryStoreEcommerce.AccountOutput { UserName = account.UserName,CheckPassword = account.CheckPassword ,PasswordNew = account.PasswordNew };
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AccountOutput>("api/Account/UpdatePassword", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            await _message.Success("Cật nhật thông tin thành công");
+            StateHasChanged();
+            NavigationManager.NavigateTo("/");     
+        }
+        else
+        {
+            await _message.Error("Mật khẩu không đúng, vui lòng nhập lại");
+        }
+    }
+    //login
+    public string TxtType = "password";
+    public string type = "fa fa-eye-slash";
+
+    public void ShowPassword()
+    {
+        if (this.TxtType == "password")
+        {
+            this.TxtType = "text";
+            this.type = " fa fa-eye";
+        }
+        else
+        {
+            this.TxtType = "password";
+            this.type = " fa fa-eye-slash";
+        }
+    }
+     int _pageIndex = 1;
+    int _pageSize = 5;
+    void handleChange(string value)
+    {
+        Console.WriteLine(value);
+    }
+     void handleChange1(string value)
+    {
+        Console.WriteLine(value);
+    }
+    [Parameter]
+    public int CurrentPage { get; set; } = 0;    
+    int ShowDetail = 1;
+    AccountOutput accountOuput = new AccountOutput();
+    private async Task GetAccount()
+    {   
+        var addItem = new Account {ID=account.ID};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.Account>("api/Account/GetOnebyID", addItem);
+        accountOuput = await response.Content.ReadFromJsonAsync<AccountOutput>();           
+    }
+    AccountOutput account = new AccountOutput();
+    const string noteKey = "note";
+    protected override async Task OnInitializedAsync()
+    {
+        account = await localStore.GetItemAsync<AccountOutput>(noteKey);
+        await GetAccount();
+        await GetProvince();
+        await GetDistrictbyProvince();   
+        await GetListCart(); 
+    }
+    RenderFragment sub1Title =
+	@<span>
+		<Icon Type="user" Theme="outline"></Icon>
+		<span>Tài khoản của tôi</span>
+    </span>
+    ;
+    bool collapsed = false;
+    void ToggleCollapsed()
+    {
+        collapsed = !collapsed;
+    }
+    public void Profile()
+    {
+        ShowDetail = 1;
+    }
+    public void OrderProduct()
+    {
+        ShowDetail = 3;
+    }
+    public void Password()
+    {
+        ShowDetail = 4;
+    }
+    List<Address> listaddress = new List<Address>();
+    public async Task GetProvince()
+    {       
+        listaddress = await Http.GetFromJsonAsync< List<Address>>($"api/Address/SelectProvince");
+    }
+    List<Address> listdistrict = new List<Address>();
+    public async Task GetDistrictbyProvince()
+    {  
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =account.ProvinceCode};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    public async Task Update()
+    {       
+        var addItem = new LibraryStoreEcommerce.AccountOutput 
+       {UserName = accountOuput.UserName,ProvinceCode =result,
+           DistrictCode=DistrictCode,Phone=accountOuput.Phone,FullName=accountOuput.FullName,
+           Sex=@accountOuput.Sex,Email=@accountOuput.Email,Address=@accountOuput.Address,Day=@accountOuput.Day};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AccountOutput>("api/Account/Update", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            await _message.Success("Cật nhật thông tin thành công");
+            StateHasChanged();
+            NavigationManager.NavigateTo("/");     
+        }
+        else
+        {
+            await _message.Error("Cật nhật thông tin thất bại");
+        }
+    }
+    public void Out()
+    {
+        NavigationManager.NavigateTo("/");     
+    }
+    public async Task GetDistrict(string Person,object checkedValue)
+    {
+        int result = Int32.Parse(Person);
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =result};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    int Tong = 0;
+    // List danh sách đã đặt hàng
+    ITable table;
+    IEnumerable<BuyOutput> selectedRows1;
+
+    List<BuyOutput> buyOutputs = new List<BuyOutput>();
+    private async Task GetListCart()
+    {   
+        var addItem = new LibraryStoreEcommerce.UserOrderProduct {UserName = account.UserName};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.UserOrderProduct>("api/Buy/ProductUserOrder", addItem);
+        buyOutputs = await response.Content.ReadFromJsonAsync<List<BuyOutput>>(); 
+    }
+    // Lấy ra quận huyện theo tỉnh
+    int result = 0;
+    //List<Address> listdistrict = new List<Address>();
+    public async Task handleChange(ChangeEventArgs e)
+    {
+        result = Int32.Parse(e.Value.ToString());
+        var addItem = new LibraryStoreEcommerce.AddressInput {ID =result};
+        var response = await Http.PostAsJsonAsync<LibraryStoreEcommerce.AddressInput>("api/Address/SelectDistrictbyProvince", addItem);
+        listdistrict = await response.Content.ReadFromJsonAsync<List<Address>>(); 
+    }
+    // Lấy ra mã huyện để Update
+     int DistrictCode = 0;
+    public async Task handleChangeDistrictCode(ChangeEventArgs e)
+    {
+        DistrictCode = Int32.Parse(e.Value.ToString());
+    }
+    //Xuất Excel
+    public async void XuatExcel()
+    {
+        //Create an instance of ExcelEngine.
+        using (ExcelEngine excelEngine = new ExcelEngine())
+        {
+            IApplication application = excelEngine.Excel;
+            application.DefaultVersion = ExcelVersion.Xlsx;
+
+            //Create a workbook.
+            IWorkbook workbook = application.Workbooks.Create(1);
+            IWorksheet worksheet = workbook.Worksheets[0];
+
+            //Initialize DataTable and data get from SampleDataTable method.
+            DataTable table = SampleDataTable();
+
+            //Export data from DataTable to Excel worksheet.
+            worksheet.ImportDataTable(table, true, 1, 1);
+
+            worksheet.UsedRange.AutofitColumns();
+
+
+            //Save the document as a stream and return the stream.
+            using (MemoryStream stream = new MemoryStream())
+            {
+                //Save the created Excel document to MemoryStream
+                workbook.SaveAs(stream);
+
+                //Download the excel file.
+                await JS.SaveAs("DonHang.xlsx", stream.ToArray());
+            }
+        }
+    }
+    private DataTable SampleDataTable()
+    {
+         DataTable reports = new DataTable();
+            reports.Columns.Add("STT");
+            reports.Columns.Add("Mã sản phẩm");
+            reports.Columns.Add("Sản phẩm");
+            reports.Columns.Add("Đơn giá", typeof(int));
+            reports.Columns.Add("Số lượng", typeof(int));
+            reports.Columns.Add("Màu sắc");
+            reports.Columns.Add("Size");
+            reports.Columns.Add("Ngày đặt hàng", typeof(DateTime));
+        foreach (var item in buyOutputs)
+        {            
+            reports.Rows.Add(item.STT,item.Code,item.NameProduct, item.Price, item.Number,item.Value,item.Size,item.Date);           
+        }              
+        return reports;
+    }
+}

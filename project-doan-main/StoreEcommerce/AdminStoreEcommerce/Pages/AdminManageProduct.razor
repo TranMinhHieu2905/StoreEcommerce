@@ -1,0 +1,365 @@
+﻿@page "/managerproduct"
+@inject HttpClient Http
+@inject ModalService _modalService
+@inject MessageService _message
+@using System.ComponentModel
+@using AntDesign.TableModels
+@using System.Text.Json;
+@using LibraryStoreEcommerce
+@using Syncfusion.XlsIO;
+@using Syncfusion.Drawing;
+@using System.IO;
+@inject Microsoft.JSInterop.IJSRuntime JS
+@using System.Data;
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link href="css/home.css" rel="stylesheet" />  
+</head>
+<div class="row">
+    <div class="col-2">
+      
+    </div>
+    <div class="col-3" style="font-size:20px;">
+        <span><i class="fa fa-shopping-basket" aria-hidden="true"></i>Quản Lý Đơn Bán </span>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div style="text-align:center">
+    </div>
+    <div class="col-4">
+
+    </div>
+    <div class="col-3">
+         <div style="background-color:white;" include="form-input-select()">
+          <select style="border-radius:8px;" @onchange="DoStuff"> 
+            <option hidden value="0">Chọn trạng thái đơn hàng</option>
+            <option value="1">Đã đặt hàng đơn hàng</option>
+            <option value="2">Xác nhận đơn hàng</option>
+            <option value="3">Đang giao hàng</option>
+            <option value="4">Đã giao hàng</option>
+            <option value="5">Hoàn tất giao hàng</option>         
+            <option value="6">Đơn hàng đã hủy</option>     
+            <option value="7">Đơn hàng hoàn về</option>
+          </select>
+        </div>
+        <div include="form-input-input()">
+            <input @bind="statisticalInput.TextSearch" placeholder="Tìm kiếm mã hoá đơn,khách hàng" style=" border-radius: 8px;">
+        </div>  <br />
+
+          <div class="row">
+              <div class="col-5">                  
+                   <DatePicker @bind-Value="@statisticalInput.FromDate" Format="dd/MM/yyyy" />                        
+              </div>
+              <div style="text-align:center" class="col-2">-</div>
+              <div class="col-5">
+                   <DatePicker @bind-Value="@statisticalInput.ToDate" Format="dd/MM/yyyy" />      
+               </div>
+          </div>
+                               
+    </div>
+    <div class="col-3" style="margin-top: 135px;">
+          <Button OnClick="GetProductbyIDSearch" Type="@ButtonType.Primary"  style="margin-top: 4px;" class="btn btn-success m-r-5">Tìm kiếm</Button> <Button OnClick="DeleteFilter" Type="@ButtonType.Primary" Danger style="margin-top: 4px" class="btn btn-success m-r-5">Xoá bộ lọc</Button>
+    </div>
+</div>
+ <div style="border-bottom: 1px solid #DADADA;margin-top: 17px;">
+         <div class="fix_screen">
+         <div class="row">
+
+                 <Table @ref="table"
+                       TItem="StatisticalOutputDetail"
+                       DataSource="@statisticalOutputs"
+                       Total="_total"
+                       @bind-PageIndex="_pageIndex"
+                       @bind-PageSize="_pageSize"
+                       @bind-SelectedRows="selectedRows"
+                       OnChange="OnChange" >
+                   @* <Selection Key="@context.UserName" Type="@selectionType" Disabled="@(context.UserName == "Disabled User")" />*@
+                    <Column Title="STT" @bind-Field="@context.STT" >  </Column>
+                    <Column Width="150"  Title="MÃ HOÁ ĐƠN" @bind-Field="@context.ID" Sortable />
+                    <Column Title="KHÁCH HÀNG" @bind-Field="@context.UserName"/>
+                    <Column  Title="KIỂU THANH TOÁN" Field="@context.Pay" />
+                    <Column Title="NGÀY ĐẶT HÀNG" @bind-Field="@context.Date" Format="dd-MM-yyyy" Sortable /> 
+                    <Column  Title="TRẠNG THÁI ĐẶT HÀNG" @bind-Field="@context.Status" /> 
+                    <ActionColumn>
+                        <Space>
+                            <SpaceItem><Button OnClick="@(async ()=>await ViewDetail(@context.ID))" Type="@ButtonType.Primary" >Xem Chi Tiết</Button></SpaceItem>
+                            <SpaceItem><Button OnClick="@(()=>{ _visible = true; StatusID =@context.StatusID;ID =@context.ID;})" Type="@ButtonType.Primary" >Cập Nhật Trạng Thái</Button></SpaceItem>
+                        </Space>
+                    </ActionColumn>
+                </Table>
+                 <button class="btn btn-primary" @onclick="@XuatExcel">Xuất hoá đơn</button>              
+    </div>
+    </div>
+</div>
+@*<br />
+<p>PageIndex: @_pageIndex | PageSize: @_pageSize | Total: @_total</p>
+
+<br />
+<h5>selections:</h5>
+@if (selectedRows != null && selectedRows.Any())
+{
+    <Button Danger Size="small" OnClick="@(e => { selectedRows = null; })">Clear</Button>
+
+    @foreach (var selected in selectedRows)
+    {
+        <Tag @key="selected.Id" Closable OnClose="e=>RemoveSelection(selected.Id)">@selected.Id - @selected.Summary</Tag>
+    }
+}
+
+<Button OnClick="()=> { _pageIndex--; }">Previous page</Button>
+<Button OnClick="()=> { _pageIndex++; }">Next Page</Button>
+*@
+  @{RenderFragment 
+    footer =@<Template>
+         <Button OnClick="()=>UpdateStatus()" Type="@ButtonType.Primary" >Cập nhât trạng thái</Button>
+         <Button @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost >Quay lại</Button>
+    </Template>;
+}  
+<Modal Title="@title"
+        Visible="@_visible"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer">
+        <p style="font-size:17px;">Chọn trạng thái hiện tại :</p>
+       
+           
+         <div style="background-color:white;" include="form-input-select()">
+        <select @bind="statisticalStatusID.StatusID" style="border-radius:8px;" >
+            <option hidden value="0">Chọn trạng thái đơn hàng</option>                                    
+                @if(StatusID ==1)
+                        {
+                            <option value="2">Xác nhận đơn hàng</option>
+                             <option value="6">Hủy đơn hàng</option>
+                        }
+                        @if(StatusID ==2)
+                        {
+                            <option value="3">Đang giao hàng</option>
+                            <option value="6">Hủy đơn hàng</option>
+                            <option value="7">Đơn hàng hoàn về</option>
+                        }
+                        @if(StatusID ==3)
+                        {
+                            <option value="4">Đã giao hàng</option>
+                            <option value="7">Đơn hàng hoàn về</option>
+                        }
+                        @if(StatusID ==4)
+                        {
+                            <option value="5">Hoàn tất giao hàng</option>
+                        }
+               
+       </select>
+    </div>
+</Modal>
+   @{RenderFragment 
+    footer1 =@<Template>
+         <button  @onclick="HandleCancel" class="btn btn-danger m-r-5">Đồng ý</button>
+         <button  @onclick="HandleCancel" Type="@ButtonType.Primary" Ghost  class="btn btn-primary m-r-5">Quay lại</button>
+    </Template>;
+}  
+<Modal Title="@title1"
+        Visible="@_visible1"
+        OnOk="@HandleOk"
+        OnCancel="@HandleCancel"
+        Footer="@footer1">
+         <b>Tên khách hàng:</b>
+        <div include="form-input-input()">
+        <input readonly @bind-value="statisticalOutput.Name" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+        </div>  
+        <b> Mã sản phẩm:</b>
+        <div include="form-input-input()">
+        <input readonly @bind-value="statisticalOutput.Code" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+        </div>  
+        <b> Tên sản phẩm:</b>
+        <div include="form-input-input()">
+        <input readonly @bind-value="statisticalOutput.NameProduct" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+        </div>  
+        <div class="row">
+            <div class="col-3">
+                 <b> Giá tiền:</b>
+                <div include="form-input-input()">
+                <input readonly @bind-value="statisticalOutput.Price" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+                </div>  
+            </div>
+             <div class="col-3">
+                  <b> Số lượng:</b>
+                <div include="form-input-input()">
+                <input readonly @bind-value="statisticalOutput.Number" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+                </div>  
+             </div>
+              <div class="col-3">
+                 <b> Size:</b>
+                <div include="form-input-input()">
+                <input readonly @bind-value="statisticalOutput.Size" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+                </div>  
+            </div>
+            <div class="col-3">
+                 <b> Màu:</b>
+                <div include="form-input-input()">
+                <input readonly @bind-value="statisticalOutput.Value" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+                </div>  
+            </div>
+            <b> Hình ảnh:</b>
+            <div include="form-input-input()">
+            <img src="@statisticalOutput.PictureLink" style="width: 50%;"/><br />  <br /> 
+            </div>  <br />  <br /> 
+            <b> Địa chỉ nhận hàng:</b>
+            <div include="form-input-input()">
+               <input readonly value="@statisticalOutput.Address, @statisticalOutput.DistrictName, @statisticalOutput.ProvinceName" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+            </div>  <br /> 
+            <b style="color:red">Tổng tiền:</b>
+          <b>  <span style="color:red">@String.Format("{0:#,##0;(#,##0);0}", @statisticalOutput.Price)<span style=" text-decoration: underline">đ</span> * @statisticalOutput.Number
+            +  @String.Format("{0:#,##0;(#,##0);0}", @statisticalOutput.PriceShip)<span style=" text-decoration: underline">đ</span>
+            = @String.Format("{0:#,##0;(#,##0);0}", @statisticalOutput.Price *@statisticalOutput.Number + @statisticalOutput.PriceShip)<span style=" text-decoration: underline">đ</span></span></b> <br />  <br /> 
+             <b><span>Hình thức thanh toán:</span><span style="color:red">&ensp; @statisticalOutput.Pay</span> </b>  <br /> 
+             <br /> 
+             <b> Trạng thái đơn hàng:</b>
+            <div include="form-input-input()">
+               <input readonly @bind-value="statisticalOutput.Status" style=" border-radius: 8px;" type="text" id="fname" name="fname" input><br><br>
+            </div>  <br /> 
+        </div>
+       
+
+</Modal>
+@code {
+    public int StatusID { get; set; } = 0;
+    public int ID { get; set; } = 0;
+    private void HandleOk(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+    }
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine(e);
+        _visible = false;
+        _visible1= false;
+    }  
+    string title = "Cập nhật trạng thái";
+    bool _visible = false;
+    string title1 = "Chi tiết đơn hàng";
+    bool _visible1 = false;
+
+    IEnumerable<StatisticalOutputDetail> selectedRows;
+    ITable table;
+    string selectionType = "checkbox";
+    int _pageIndex = 1;
+    int _pageSize = 10;
+    int _total = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProductbyIDSearch();
+
+    }
+    public async Task OnChange(QueryModel<StatisticalOutputDetail> queryModel)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(queryModel));
+    }
+    List<StatisticalOutputDetail> statisticalOutputs = new List<StatisticalOutputDetail>();
+    StatisticalStatusID statisticalStatusID = new StatisticalStatusID();
+    StatisticalInput statisticalInput = new StatisticalInput();
+    public async Task GetProductbyIDSearch()
+    {
+        var addItem = new StatisticalInput {TextSearch=statisticalInput.TextSearch,FromDate=statisticalInput.FromDate,ToDate=statisticalInput.ToDate,StatusID=result};
+        var response = await Http.PostAsJsonAsync<StatisticalInput>("api/Statistical/GetListProductSearch", addItem);
+        statisticalOutputs = await response.Content.ReadFromJsonAsync<List<StatisticalOutputDetail>>();          
+    }  
+    // cập nhật trạng thái
+    public async Task UpdateStatus()
+    {
+        var addItem = new StatisticalStatusID {ID = ID,StatusID=statisticalStatusID.StatusID};
+        var response = await Http.PostAsJsonAsync<StatisticalStatusID>("api/Statistical/UpdateStatus", addItem);
+        if (response.IsSuccessStatusCode)
+        {
+            _visible = false;
+            await _message.Success("Cập nhật trạng thái thành công");
+            await GetProductbyIDSearch();
+        }
+        else
+        {
+            await _message.Error("Cập nhật trạng thái thất bại");    
+        }    
+    }
+    // Lọc theo trạng thái
+    string selectd = "";
+    int result=0;
+    public async Task DoStuff(ChangeEventArgs e)
+    {
+        selectd = e.Value.ToString();
+        result = Int32.Parse(selectd);
+        var addItem = new StatisticalInput {TextSearch=statisticalInput.TextSearch,FromDate=statisticalInput.FromDate,ToDate=statisticalInput.ToDate,StatusID=result};
+        var response = await Http.PostAsJsonAsync<StatisticalInput>("api/Statistical/GetListProductByStatusID", addItem);
+        statisticalOutputs = await response.Content.ReadFromJsonAsync<List<StatisticalOutputDetail>>();     
+    }
+    public async Task DeleteFilter()
+    {
+        statisticalInput.TextSearch = string.Empty;
+        var addItem = new StatisticalInput {FromDate=DateTime.Today.AddDays(-7),ToDate=DateTime.Now,StatusID=0};
+        var response = await Http.PostAsJsonAsync<StatisticalInput>("api/Statistical/GetListProductSearch", addItem);
+        statisticalOutputs = await response.Content.ReadFromJsonAsync<List<StatisticalOutputDetail>>();          
+    }
+    // List chi tiết đơn hàng
+    StatisticalOutputDetail statisticalOutput = new StatisticalOutputDetail();
+    public async Task ViewDetail(int ID)
+    {
+        _visible1 = true;
+        var addItem = new StatisticalIDetail {ID = ID};
+        var response = await Http.PostAsJsonAsync<StatisticalIDetail>("api/Statistical/GetDetailProduct", addItem);
+        statisticalOutput = await response.Content.ReadFromJsonAsync<StatisticalOutputDetail>();        
+    }
+     //Xuất Excel
+    public async void XuatExcel()
+    {
+        //Create an instance of ExcelEngine.
+        using (ExcelEngine excelEngine = new ExcelEngine())
+        {
+            IApplication application = excelEngine.Excel;
+            application.DefaultVersion = ExcelVersion.Xlsx;
+
+            //Create a workbook.
+            IWorkbook workbook = application.Workbooks.Create(1);
+            IWorksheet worksheet = workbook.Worksheets[0];
+
+            //Initialize DataTable and data get from SampleDataTable method.
+            DataTable table = SampleDataTable();
+
+            //Export data from DataTable to Excel worksheet.
+            worksheet.ImportDataTable(table, true, 1, 1);
+
+            worksheet.UsedRange.AutofitColumns();
+
+
+            //Save the document as a stream and return the stream.
+            using (MemoryStream stream = new MemoryStream())
+            {
+                //Save the created Excel document to MemoryStream
+                workbook.SaveAs(stream);
+
+                //Download the excel file.
+                await JS.SaveAs("DonBanHang.xlsx", stream.ToArray());
+            }
+        }
+    }
+    private DataTable SampleDataTable()
+    {
+         DataTable reports = new DataTable();
+            reports.Columns.Add("STT");
+            reports.Columns.Add("Tên khách hàng");
+            reports.Columns.Add("Địa chỉ");
+            reports.Columns.Add("Mã sản phẩm");
+            reports.Columns.Add("Sản phẩm");
+            reports.Columns.Add("Đơn giá", typeof(int));
+            reports.Columns.Add("Số lượng", typeof(int));
+            reports.Columns.Add("Màu sắc");
+            reports.Columns.Add("Size");
+            reports.Columns.Add("Ngày đặt hàng", typeof(DateTime));
+        foreach (var item in statisticalOutputs)
+        {            
+            reports.Rows.Add(item.STT,item.Name,item.Address +", " +item.DistrictName + ", "+item.ProvinceName,item.Code,item.NameProduct, item.Price, item.Number,item.Value,item.Size,item.Date);           
+        }              
+        return reports;
+    }
+}
